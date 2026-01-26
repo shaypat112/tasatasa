@@ -1,26 +1,54 @@
-@import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+html,
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  font-family: "Press Start 2P", monospace;
 }
+
+* {
+  box-sizing: border-box;
+  image-rendering: pixelated;
+}
+
+/* Main content area centering */
+main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* Retro panel styling */
+.retro-panel {
+  border: 4px solid white;
+  background: #000;
+  padding: 2.5rem;
+  text-align: center;
+}
+
+/* Button styling */
+.retro-button {
+  border: 2px solid white;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: white;
+  cursor: pointer;
+}
+
+.retro-button:hover {
+  background: white;
+  color: black;
+}
+
+/* Disabled button */
+.retro-button.disabled {
+  border-color: #666;
+  color: #666;
+  cursor: not-allowed;
+}
+
