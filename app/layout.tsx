@@ -24,6 +24,24 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Retro Shift",
   description: "16 bit web game",
+  openGraph: {
+    title: "Retro Shift",
+    description: "16 bit web game",
+    images: [
+      {
+        url: "public/math.png",
+        width: 1200,
+        height: 630,
+        alt: "RetroShift AP Precalculus Retro Game",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Retro Shift",
+    description: "16 bit web game",
+    images: ["public/math.png"],
+  },
 };
 
 export default function RootLayout({
@@ -42,23 +60,23 @@ export default function RootLayout({
               
 
 
-              <div className="mt-auto p-4 text-[10px] text-gray-500 text-center">
-                AP PRECALC MODE
-              </div>
+
 
             {/* Main Area */}
             <div className="flex flex-col">
               {/* Header */}
-             <header className="h-14 px-6 flex items-center border-b-2 border-white">
-  {/* Left spacer (keeps layout stable) */}
-  <div className="flex-1" />
-
-  {/* Auth area */}
-  <div className="flex items-center gap-4">
+          <header className="absolute top-2 left-2 z-50 ">
+  <div className="flex items-center gap-2">
+    
     <SignedOut>
-      <SignInButton />
+      <SignInButton>
+        <button className="retro-button text-xs px-2 py-1">
+          SIGN IN
+        </button>
+      </SignInButton>
+
       <SignUpButton>
-        <button className="retro-button text-xs">
+        <button className="retro-button text-xs px-2 py-1">
           SIGN UP
         </button>
       </SignUpButton>
@@ -68,13 +86,15 @@ export default function RootLayout({
       <UserButton
         appearance={{
           elements: {
-            avatarBox: "w-10 h-10 border-2 border-white",
+            avatarBox: "w-8 h-8 border",
           },
         }}
       />
     </SignedIn>
   </div>
 </header>
+
+
 
 
               {/* Content */}
