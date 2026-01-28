@@ -27,12 +27,14 @@ export default function HomePage() {
               </button>
             </Link>
 
+<Link href="/settings">
             <button
               className="retro-button opacity-40 cursor-not-allowed"
               disabled
             >
               SETTINGS
             </button>
+            </Link>
           </div>
 
           <p className="text-[10px] text-gray-500 pt-4">
