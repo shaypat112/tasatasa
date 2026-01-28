@@ -30,7 +30,6 @@ export default function HomePage() {
 <Link href="/settings">
             <button
               className="retro-button opacity-40 cursor-not-allowed"
-              disabled
             >
               SETTINGS
             </button>
