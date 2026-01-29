@@ -448,7 +448,7 @@ export default function BattlePage() {
         const currentWins = typeof metadata.wins === 'number' ? metadata.wins : 0;
         
         await user.update({
-          publicMetadata: {
+         unsafeMetadata: {
             ...metadata,
             wins: currentWins + 1,
             hp: Math.min(100, battleStats.playerHp + 20) // Heal 20 HP on win
@@ -481,7 +481,7 @@ export default function BattlePage() {
         const currentLosses = typeof metadata.losses === 'number' ? metadata.losses : 0;
         
         await user.update({
-          publicMetadata: {
+        unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
             hp: 50 // Reset to 50 HP on loss
@@ -514,7 +514,7 @@ export default function BattlePage() {
         const currentLosses = typeof metadata.losses === 'number' ? metadata.losses : 0;
         
         await user.update({
-          publicMetadata: {
+    unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
             hp: Math.max(1, battleStats.playerHp - 10) // Lose 10 HP for fleeing

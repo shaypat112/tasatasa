@@ -57,7 +57,7 @@ export default function GamePage() {
           
           // Update Clerk metadata with default game data
           await user.update({
-            publicMetadata: {
+            unsafeMetadata: {
               ...metadata,
               difficulty: 'simple',
               hp: 100,
