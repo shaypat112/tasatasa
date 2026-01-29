@@ -5,43 +5,19 @@ export default function NowPlaying() {
     <div className="main">
       {/* Header */}
       <div className="currentplaying">
-      <svg
-  viewBox="0 0 64 64"
-  xmlns="http://www.w3.org/2000/svg"
-  className="spotify"
->
-  {/* Background */}
-  <circle cx="32" cy="32" r="25" fill="#2563eb" />
+        <svg
+          viewBox="0 0 64 64"
+          xmlns="http://www.w3.org/2000/svg"
+          className="spotify"
+        >
+          <circle cx="32" cy="32" r="25" fill="#1db954" />
+          <path
+            d="M41.6 44.4c-.4 0-.7-.2-1.1-.4-3.5-2-7.7-3.1-12.2-3.1-2.6 0-5.1.4-7.5.9-.4 0-.9.2-1.1.2-.9 0-1.5-.7-1.5-1.5 0-.9.5-1.5 1.3-1.6 2.9-.7 5.8-1.1 9-1.1 5.1 0 9.9 1.3 13.9 3.7.5.3.9.7.9 1.6 0 .7-.7 1.4-1.4 1.4z"
+            fill="#fff"
+          />
+        </svg>
 
-  {/* Plus */}
-  <rect x="30" y="18" width="4" height="28" fill="#fff" />
-  <rect x="18" y="30" width="28" height="4" fill="#fff" />
-
-  {/* Minus */}
-  <rect x="18" y="46" width="12" height="3" fill="#fff" />
-
-  {/* Multiply (x) */}
-  <rect
-    x="38"
-    y="41"
-    width="3"
-    height="12"
-    fill="#fff"
-    transform="rotate(45 38 41)"
-  />
-  <rect
-    x="38"
-    y="41"
-    width="3"
-    height="12"
-    fill="#fff"
-    transform="rotate(-45 38 41)"
-  />
-</svg>
-
-      
-
-        <p className="heading">MATH LEVELS</p>
+        <p className="heading">MATH LEVELE</p>
       </div>
 
       {/* Song 1 */}

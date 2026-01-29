@@ -1,23 +1,24 @@
 "use client";
 
-import { useState } from "react";
-
 export type Difficulty =
   | "simple"
   | "math3"
   | "precalc"
   | "calculus";
 
-export default function DifficultySelector() {
-  const [difficulty, setDifficulty] = useState<Difficulty>("simple");
+interface Props {
+  value: Difficulty;
+  onChange: (value: Difficulty) => void;
+}
 
+export default function DifficultySelector({ value, onChange }: Props) {
   return (
     <div className="retro-panel">
       <label className="retro-label">DIFFICULTY</label>
       <select
         className="retro-select"
-        value={difficulty}
-        onChange={(e) => setDifficulty(e.target.value as Difficulty)}
+        value={value}
+        onChange={(e) => onChange(e.target.value as Difficulty)}
       >
         <option value="simple">Simple Math</option>
         <option value="math3">Math 3</option>

@@ -27,7 +27,7 @@ main {
 
 .retro-panel {
   background: #000;
-  border: 2px solid #fff;
+  border: 2px solid #434141;
   padding: 6px 8px;
   box-shadow:
     2px 2px 0 #000,
@@ -47,7 +47,7 @@ main {
   font-size: 8px;
   background: #000;
   color: #fff;
-  border: 2px solid #fff;
+  border: 2px solid #666464;
   padding: 4px 6px;
   cursor: pointer;
   
@@ -69,13 +69,14 @@ main {
 .retro-button {
   font-family: "Press Start 2P", monospace;
   font-size: 11px;
-  margin-top: 12px;
+  margin-top: 37px;
   margin-left: 4px;
+  margin: 7px;
 
   background: #000;
   color: #fff;
 
-  padding: 6px 10px;
+  padding: 17px 10px;
 
   border: 2px solid #a5a1a1;
   box-shadow:
@@ -107,127 +108,151 @@ main {
 }
 
 
+/* From Uiverse.io by ZacharyCrespin */ 
+@keyframes square-animation {
+ 0% {
+  left: 0;
+  top: 0;
+ }
 
-/* From Uiverse.io by Praashoo7 */ 
-.main {
-  background-color: white;
-  padding: 1em;
-  padding-bottom: 1.1em;
-  border-radius: 15px;
-  margin: 1em;
+ 10.5% {
+  left: 0;
+  top: 0;
+ }
+
+ 12.5% {
+  left: 32px;
+  top: 0;
+ }
+
+ 23% {
+  left: 32px;
+  top: 0;
+ }
+
+ 25% {
+  left: 64px;
+  top: 0;
+ }
+
+ 35.5% {
+  left: 64px;
+  top: 0;
+ }
+
+ 37.5% {
+  left: 64px;
+  top: 32px;
+ }
+
+ 48% {
+  left: 64px;
+  top: 32px;
+ }
+
+ 50% {
+  left: 32px;
+  top: 32px;
+ }
+
+ 60.5% {
+  left: 32px;
+  top: 32px;
+ }
+
+ 62.5% {
+  left: 32px;
+  top: 64px;
+ }
+
+ 73% {
+  left: 32px;
+  top: 64px;
+ }
+
+ 75% {
+  left: 0;
+  top: 64px;
+ }
+
+ 85.5% {
+  left: 0;
+  top: 64px;
+ }
+
+ 87.5% {
+  left: 0;
+  top: 32px;
+ }
+
+ 98% {
+  left: 0;
+  top: 32px;
+ }
+
+ 100% {
+  left: 0;
+  top: 0;
+ }
 }
+
 
 .loader {
-  display: flex;
-  flex-direction: row;
-  height: 4em;
-  padding-left: 1em;
-  padding-right: 1em;
-  transform: rotate(180deg);
-  justify-content: right;
-  border-radius: 10px;
-  transition: .4s ease-in-out;
+  position: absolute;
+  top: 49px;
+  right: 27px;
+  width: 120px;
+  height: 120px;
+  transform: rotate(45deg);
 }
 
-.loader:hover {
-  cursor: pointer;
-  background-color: lightgray;
+
+.loader-square {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 0;
+  background: white;
+  animation: square-animation 10s ease-in-out infinite both;
 }
 
-.currentplaying {
-  display: flex;
-  margin: 1em;
+.loader-square:nth-of-type(0) {
+ animation-delay: 0s;
 }
 
-.spotify {
-  width: 50px;
-  height: 50px;
-  margin-right: 0.6em;
+.loader-square:nth-of-type(1) {
+ animation-delay: -1.4285714286s;
 }
 
-.heading {
-  color: black;
-  font-size: 1.1em;
-  font-weight: bold;
-  align-self: center;
+.loader-square:nth-of-type(2) {
+ animation-delay: -2.8571428571s;
 }
 
-.loading {
-  display: flex;
-  margin-top: 1em;
-  margin-left: 0.3em;
+.loader-square:nth-of-type(3) {
+ animation-delay: -4.2857142857s;
 }
 
-.load {
-  width: 2px;
-  height: 33px;
-  background-color: limegreen;
-  animation: 1s move6 infinite;
-  border-radius: 5px;
-  margin: 0.1em;
+.loader-square:nth-of-type(4) {
+ animation-delay: -5.7142857143s;
 }
 
-.load:nth-child(1) {
-  animation-delay: 0.2s;
+.loader-square:nth-of-type(5) {
+ animation-delay: -7.1428571429s;
 }
 
-.load:nth-child(2) {
-  animation-delay: 0.4s;
+.loader-square:nth-of-type(6) {
+ animation-delay: -8.5714285714s;
 }
 
-.load:nth-child(3) {
-  animation-delay: 0.6s;
+.loader-square:nth-of-type(7) {
+ animation-delay: -10s;
 }
-
-.play {
-  position: relative;
-  left: 0.35em;
-  height: 1.6em;
-  width: 1.6em;
-  clip-path: polygon(50% 50%, 100% 50%, 75% 6.6%);
-  background-color: black;
-  transform: rotate(-90deg);
-  align-self: center;
-  margin-top: 0.7em;
-  justify-self: center;
-}
-
-.albumcover {
-  position: relative;
-  margin-right: 1em;
-  height: 40px;
-  width: 40px;
-  background-color: rgb(233, 232, 232);
-  align-self: center;
-  border-radius: 5px;
-}
-
-.song {
-  position: relative;
-  transform: rotate(180deg);
-  margin-right: 1em;
-  color: black;
-  align-self: center;
-}
-
-.artist {
-  font-size: 0.6em;
-}
-
-@keyframes move6 {
-  0% {
-    height: 0.2em;
-  }
-
-  25% {
-    height: 0.7em;
-  }
-
-  50% {
-    height: 1.5em;
-  }
-
-  100% {
-    height: 0.2em;
-  }
+.techstack-section {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
 }

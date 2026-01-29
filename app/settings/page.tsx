@@ -1,7 +1,5 @@
 "use client";
 
-
-import styles from "./NowPlaying.module.css";
 import Link from "next/link";
 import NowPlaying from "../components/NowPlaying";
 
@@ -12,9 +10,9 @@ export default function SettingsPage() {
       <div
         className="relative rounded-lg"
         style={{
-          width: "1200px",
-          height: "800px",
-          backgroundColor: "#011522",
+          width: "1600px",
+          height: "950px",
+          backgroundColor: "#00000",
         }}
       >
         {/* Window header */}
@@ -26,36 +24,29 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="h-full grid grid-cols-2 gap-12 p-10">
-          {/* LEFT: Settings */}
-          <div className="flex flex-col justify-center space-y-8">
-            <div>
-<h1 className="absolute top-6 left-1/2 -translate-x-1/2 text-xl tracking-widest">
-  SETTINGS
-</h1>
-            
-            </div>
+        {/* SETTINGS title – top center */}
+        <h1 className="absolute top-16 left-1/2 -translate-x-1/2 text-9xl tracking-widest">
+          SETTINGS
+        </h1>
 
-           
+        {/* Main content area */}
+        <div className="absolute inset-0 pt-32 px-20">
+          {/* Upper empty space for future settings */}
+          <div className="h-1/2" />
 
-
-         
-          </div>
-
-          {/* RIGHT: Now Playing */}
-          <div className="flex items-center justify-center">
+          {/* Bottom section: Now Playing */}
+          <div className="flex justify-center">
             <NowPlaying />
           </div>
         </div>
-      </div>
-      <section>
-           <Link href="/">
-              <button className="retro-button w-full">BACK</button>
-            </Link>
-      </section>
-    </div>
 
+        {/* Back button */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <Link href="/">
+            <button className="retro-button px-12">BACK</button>
+          </Link>
+        </div>
+      </div>
+    </div>
   );
 }
-
