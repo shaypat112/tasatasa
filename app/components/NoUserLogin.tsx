@@ -20,12 +20,16 @@ export default function NotUser({
     <div className={styles.overlay}>
       <div className={styles.card}>
         <button
-          className={styles.close}
-          onClick={() => setVisible(false)}
-          aria-label="Close"
-        >
-          X
-        </button>
+  className={styles.close}
+  onClick={() => {
+    setVisible(false);
+    router.push("/NotFound");
+  }}
+  aria-label="Close"
+>
+  X
+</button>
+
 
       <button
   onClick={() => router.push("/")}

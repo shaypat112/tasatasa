@@ -3,6 +3,8 @@
 import Link from "next/link";
 import DifficultySelector from "./components/DifficultySelector";
 import TechStacks from "./components/TechStacks";
+import CodeWindow from "./components/CodeWindow/CodeWindow";
+
 
 export default function HomePage() {
   return (
@@ -55,6 +57,9 @@ export default function HomePage() {
           <div className="loader-square" />
           <div className="loader-square" />
         </div>
+      </section>
+      <section>
+        <CodeWindow/>
       </section>
   
 
