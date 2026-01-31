@@ -47,6 +47,28 @@ export default function BattlePage() {
     turn: 'player',
     battleStatus: 'active'
   });
+  const DIFFICULTY_CONFIG = {
+  simple: {
+    damageMultiplier: 1,
+    enemyDamageMultiplier: 1,
+    healOnWin: 15,
+    xpReward: 10,
+  },
+  precalc: {
+    damageMultiplier: 1.4,
+    enemyDamageMultiplier: 1.2,
+    healOnWin: 25,
+    xpReward: 25,
+  },
+  calculus: {
+    damageMultiplier: 1.8,
+    enemyDamageMultiplier: 1.5,
+    healOnWin: 40,
+    xpReward: 50,
+  },
+} as const;
+
+
   
   // Game state
   const [currentProblem, setCurrentProblem] = useState<MathProblem | null>(null);
@@ -58,7 +80,8 @@ export default function BattlePage() {
   const [battleLog, setBattleLog] = useState<string[]>([]);
   const [playerDifficulty, setPlayerDifficulty] = useState<'simple' | 'precalc' | 'calculus'>('simple');
   const [isUpdatingMetadata, setIsUpdatingMetadata] = useState<boolean>(false);
-  
+  const [difficultyLocked, setDifficultyLocked] = useState(false);
+
   // Initialize battle based on user difficulty
   useEffect(() => {
     if (!isLoaded || !user) return;

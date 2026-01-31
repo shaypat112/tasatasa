@@ -42,6 +42,14 @@ export default function HomePage() {
                 SETTINGS
               </button>
             </Link>
+            <Link href="/chat">
+              <button
+                className="retro-button w-full opacity-40 cursor-not-allowed"
+                aria-disabled="true"
+              >
+                ChatRoom
+              </button>
+            </Link>
           </div>
         </div>
       </main>
