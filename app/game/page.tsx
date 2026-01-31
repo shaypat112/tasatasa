@@ -4,7 +4,7 @@ import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import styles from './page.module.css';
-
+import NotUser from '../components/NoUserLogin';
 // Type definitions for game metadata
 interface GameMetadata {
   difficulty: 'simple' | 'precalc' | 'calculus';
@@ -208,8 +208,8 @@ export default function GamePage() {
   
   if (!user) {
     return (
-      <div className={styles.errorContainer}>
-        <p className={styles.errorText}>Please sign in to play the game.</p>
+      <div>
+        <NotUser/> 
       </div>
     );
   }

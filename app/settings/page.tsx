@@ -1,52 +1,183 @@
 "use client";
 
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import NowPlaying from "../components/NowPlaying";
+import NotUser from "../components/NoUserLogin";
 
 export default function SettingsPage() {
+  const { user, isLoaded } = useUser();
+
+  const [mathMode, setMathMode] = useState("simple");
+  const [showHints, setShowHints] = useState(true);
+  const [timerEnabled, setTimerEnabled] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [difficultySpeed, setDifficultySpeed] =
+    useState<"slow" | "normal" | "fast">("normal");
+
+  const [status, setStatus] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+
+    setMathMode((user.publicMetadata.mathMode as string) || "simple");
+    setShowHints((user.publicMetadata.showHints as boolean) ?? true);
+    setTimerEnabled((user.publicMetadata.timerEnabled as boolean) ?? false);
+    setSoundEnabled((user.publicMetadata.soundEnabled as boolean) ?? true);
+    setDifficultySpeed(
+      (user.publicMetadata.difficultySpeed as "slow" | "normal" | "fast") ??
+        "normal"
+    );
+  }, [user]);
+
+  async function saveSettings() {
+    setStatus("SAVING...");
+
+    const res = await fetch("/api/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({
+        mathMode,
+        showHints,
+        timerEnabled,
+        soundEnabled,
+        difficultySpeed,
+      }),
+    });
+
+    setStatus(res.ok ? "SAVED" : "ERROR");
+  }
+
+  if (!isLoaded || !user) return <NotUser/>;
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center text-white">
-      {/* Retro window */}
       <div
-        className="relative rounded-lg"
         style={{
-          width: "1600px",
-          height: "950px",
-          backgroundColor: "#00000",
+          width: "900px",
+          border: "4px solid white",
+          padding: "40px",
+          fontFamily: '"Press Start 2P", monospace',
         }}
       >
-        {/* Window header */}
-        <div className="flex items-center px-4 py-3 border-b border-white/20">
-          <div className="flex gap-2">
-            <span className="w-3 h-3 rounded-full bg-[#ff605c]" />
-            <span className="w-3 h-3 rounded-full bg-[#ffbd44]" />
-            <span className="w-3 h-3 rounded-full bg-[#00ca4e]" />
-          </div>
-        </div>
-
-        {/* SETTINGS title – top center */}
-        <h1 className="absolute top-16 left-1/2 -translate-x-1/2 text-9xl tracking-widest">
-          SETTINGS
+        <h1 style={{ textAlign: "center", marginBottom: "40px" }}>
+          GAME SETTINGS FOR 
+          <br/> <br/> <div style={{"fontSize":"24px"}}>{user.fullName}</div>
         </h1>
 
-        {/* Main content area */}
-        <div className="absolute inset-0 pt-32 px-20">
-          {/* Upper empty space for future settings */}
-          <div className="h-1/2" />
+        {/* Math Mode */}
+        <section style={{ marginBottom: "28px" }}>
+          <p>MATH MODE</p>
+          <select
+            value={mathMode}
+            onChange={(e) => setMathMode(e.target.value)}
+            style={selectStyle}
+          >
+            <option value="simple">SIMPLE ARITHMETIC</option>
+            <option value="math3">MATH 3</option>
+            <option value="moderate">MODERATE MIX</option>
+            <option value="ap-precalc">AP PRECALCULUS</option>
+            <option value="calc-ab">CALCULUS AB</option>
+          </select>
+        </section>
 
-          {/* Bottom section: Now Playing */}
-          <div className="flex justify-center">
-            <NowPlaying />
-          </div>
+        {/* Toggles */}
+        <Toggle label="SHOW HINTS" value={showHints} onToggle={setShowHints} />
+        <Toggle
+          label="TIMER MODE"
+          value={timerEnabled}
+          onToggle={setTimerEnabled}
+        />
+        <Toggle
+          label="SOUND"
+          value={soundEnabled}
+          onToggle={setSoundEnabled}
+        />
+
+        {/* Difficulty Speed */}
+        <section style={{ marginBottom: "40px" }}>
+          <p>ENEMY SPEED</p>
+          <select
+            value={difficultySpeed}
+            onChange={(e) =>
+              setDifficultySpeed(e.target.value as "slow" | "normal" | "fast")
+            }
+            style={selectStyle}
+          >
+            <option value="slow">SLOW</option>
+            <option value="normal">NORMAL</option>
+            <option value="fast">FAST</option>
+          </select>
+        </section>
+
+        {/* Save */}
+        <div style={{ textAlign: "center" }}>
+          <button onClick={saveSettings} style={primaryButton}>
+            SAVE SETTINGS
+          </button>
         </div>
 
-        {/* Back button */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+        {status && (
+          <p style={{ textAlign: "center", marginTop: "20px" }}>{status}</p>
+        )}
+
+        {/* Back */}
+        <div style={{ textAlign: "center", marginTop: "40px" }}>
           <Link href="/">
-            <button className="retro-button px-12">BACK</button>
+            <button style={secondaryButton}>BACK</button>
           </Link>
         </div>
       </div>
     </div>
   );
 }
+
+/* --- small helpers --- */
+
+function Toggle({
+  label,
+  value,
+  onToggle,
+}: {
+  label: string;
+  value: boolean;
+  onToggle: (v: boolean) => void;
+}) {
+  return (
+    <section style={{ marginBottom: "24px" }}>
+      <p>{label}</p>
+      <button
+        onClick={() => onToggle(!value)}
+        style={secondaryButton}
+      >
+        {value ? "ON" : "OFF"}
+      </button>
+    </section>
+  );
+}
+
+const selectStyle: React.CSSProperties = {
+  width: "100%",
+  marginTop: "12px",
+  background: "black",
+  color: "white",
+  border: "2px solid white",
+  padding: "10px",
+};
+
+const primaryButton: React.CSSProperties = {
+  border: "3px solid white",
+  padding: "16px 40px",
+  background: "black",
+  color: "white",
+  cursor: "pointer",
+};
+
+const secondaryButton: React.CSSProperties = {
+  marginTop: "10px",
+  border: "2px solid white",
+  background: "black",
+  color: "white",
+  padding: "10px 20px",
+};
