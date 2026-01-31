@@ -110,7 +110,7 @@ export default function BattlePage() {
     };
     
     initializeBattle();
-  }, [user, isLoaded]);
+  }, []);
   
   // Generate enemy based on difficulty
   const generateEnemy = useCallback((difficulty: string): Enemy => {

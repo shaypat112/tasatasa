@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import NotUser from "../components/NoUserLogin";
+import { useRef } from "react";
+
 
 export default function SettingsPage() {
   const { user, isLoaded } = useUser();
@@ -16,19 +18,23 @@ export default function SettingsPage() {
     useState<"slow" | "normal" | "fast">("normal");
 
   const [status, setStatus] = useState("");
+  const initialized = useRef(false);
 
-  useEffect(() => {
-    if (!user) return;
+useEffect(() => {
+  if (!isLoaded || !user || initialized.current) return;
 
-    setMathMode((user.publicMetadata.mathMode as string) || "simple");
-    setShowHints((user.publicMetadata.showHints as boolean) ?? true);
-    setTimerEnabled((user.publicMetadata.timerEnabled as boolean) ?? false);
-    setSoundEnabled((user.publicMetadata.soundEnabled as boolean) ?? true);
-    setDifficultySpeed(
-      (user.publicMetadata.difficultySpeed as "slow" | "normal" | "fast") ??
-        "normal"
-    );
-  }, [user]);
+  initialized.current = true;
+
+  setMathMode((user.publicMetadata.mathMode as string) || "simple");
+  setShowHints((user.publicMetadata.showHints as boolean) ?? true);
+  setTimerEnabled((user.publicMetadata.timerEnabled as boolean) ?? false);
+  setSoundEnabled((user.publicMetadata.soundEnabled as boolean) ?? true);
+  setDifficultySpeed(
+    (user.publicMetadata.difficultySpeed as "slow" | "normal" | "fast") ??
+      "normal"
+  );
+}, [user, isLoaded]);
+
 
   async function saveSettings() {
     setStatus("SAVING...");
