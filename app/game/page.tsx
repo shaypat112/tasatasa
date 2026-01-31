@@ -2,354 +2,394 @@
 
 import { useUser } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import styles from './page.module.css';
 import NotUser from '../components/NoUserLogin';
-// Type definitions for game metadata
+
 interface GameMetadata {
   difficulty: 'simple' | 'precalc' | 'calculus';
   hp: number;
   wins: number;
   losses: number;
-  // Add other game stats as needed
+  level: number;
+  xp: number;
+  gold: number;
 }
 
-// Map tile types for visual variety
 type TileType = 'grass' | 'path' | 'water' | 'mountain' | 'town' | 'dungeon';
 
-// Map node interface for grid-based navigation
 interface MapNode {
   id: number;
   type: TileType;
   row: number;
   col: number;
   accessible: boolean;
+  hasEncounter: boolean;
 }
 
 export default function GamePage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
   
-  // Game state
   const [gameData, setGameData] = useState<GameMetadata>({
     difficulty: 'simple',
     hp: 100,
     wins: 0,
-    losses: 0
+    losses: 0,
+    level: 1,
+    xp: 0,
+    gold: 0
   });
   
-  // Map grid state
   const [mapGrid, setMapGrid] = useState<MapNode[][]>([]);
+  const [playerPos, setPlayerPos] = useState({ row: 3, col: 3 });
   const [isUpdatingMetadata, setIsUpdatingMetadata] = useState(false);
-  
-  // Initialize game metadata when user loads
-  useEffect(() => {
-    if (!isLoaded || !user) return;
+
+  const initializeGameData = useCallback(async () => {
+    if (!user) return;
     
-    const initializeGameData = async () => {
-      try {
-        const metadata = user.publicMetadata;
-        const currentDifficulty = metadata.difficulty as GameMetadata['difficulty'];
+    try {
+      const metadata = user.publicMetadata;
+      const currentDifficulty = metadata.difficulty as GameMetadata['difficulty'];
+      
+      if (!currentDifficulty) {
+        setIsUpdatingMetadata(true);
         
-        // Check if difficulty exists in metadata, if not set default
-        if (!currentDifficulty) {
-          setIsUpdatingMetadata(true);
-          
-          // Update Clerk metadata with default game data
-          await user.update({
-            unsafeMetadata: {
-              ...metadata,
-              difficulty: 'simple',
-              hp: 100,
-              wins: 0,
-              losses: 0
-            }
-          });
-          
-          setGameData({
+        await user.update({
+          unsafeMetadata: {
             difficulty: 'simple',
             hp: 100,
             wins: 0,
-            losses: 0
-          });
-        } else {
-          // Load existing game data from metadata
-          setGameData({
-            difficulty: currentDifficulty || 'simple',
-            hp: typeof metadata.hp === 'number' ? metadata.hp : 100,
-            wins: typeof metadata.wins === 'number' ? metadata.wins : 0,
-            losses: typeof metadata.losses === 'number' ? metadata.losses : 0
-          });
-        }
-      } catch (error) {
-        console.error('Error initializing game data:', error);
-        // Fallback to default data
+            losses: 0,
+            level: 1,
+            xp: 0,
+            gold: 0
+          }
+        });
+        
         setGameData({
           difficulty: 'simple',
           hp: 100,
           wins: 0,
-          losses: 0
+          losses: 0,
+          level: 1,
+          xp: 0,
+          gold: 0
         });
-      } finally {
-        setIsUpdatingMetadata(false);
+      } else {
+        setGameData({
+          difficulty: currentDifficulty || 'simple',
+          hp: typeof metadata.hp === 'number' ? metadata.hp : 100,
+          wins: typeof metadata.wins === 'number' ? metadata.wins : 0,
+          losses: typeof metadata.losses === 'number' ? metadata.losses : 0,
+          level: typeof metadata.level === 'number' ? metadata.level : 1,
+          xp: typeof metadata.xp === 'number' ? metadata.xp : 0,
+          gold: typeof metadata.gold === 'number' ? metadata.gold : 0
+        });
       }
-    };
+    } catch (error) {
+      console.error('Error initializing game data:', error);
+    } finally {
+      setIsUpdatingMetadata(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) return;
     
     initializeGameData();
-  }, [user, isLoaded]);
-  
-  // Generate map grid on component mount
+  }, [isLoaded, user, initializeGameData]);
+
   useEffect(() => {
     generateMapGrid();
   }, []);
-  
-  // Generate a 8x8 map grid with various tile types
+
   const generateMapGrid = () => {
     const grid: MapNode[][] = [];
     const rows = 8;
     const cols = 8;
     
-    // Player starting position (center of grid)
-    const startRow = 3;
-    const startCol = 3;
-    
     for (let row = 0; row < rows; row++) {
       const rowNodes: MapNode[] = [];
       for (let col = 0; col < cols; col++) {
-        // Determine tile type based on position
         let type: TileType = 'grass';
         
-        // Create paths from center
-        if (row === startRow || col === startCol) {
+        // Create a path network
+        if ((row + col) % 3 === 0 || Math.abs(row - playerPos.row) + Math.abs(col - playerPos.col) <= 2) {
           type = 'path';
         }
         
-        // Add special tiles
+        // Place special tiles
         if (row === 0 && col === 0) type = 'town';
         if (row === 7 && col === 7) type = 'dungeon';
-        if ((row === 1 && col === 1) || (row === 6 && col === 6)) type = 'mountain';
+        if ((row === 2 && col === 2) || (row === 5 && col === 5)) type = 'mountain';
         if ((row === 0 && col === 7) || (row === 7 && col === 0)) type = 'water';
         
-        // Player starts at center, which is always accessible
-        const accessible = row === startRow && col === startCol;
+        // Determine accessibility (within 1 tile range)
+        const distance = Math.abs(row - playerPos.row) + Math.abs(col - playerPos.col);
+        const accessible = distance <= 1 && !(row === playerPos.row && col === playerPos.col);
+        
+        // Random encounters on grass/path tiles
+        const hasEncounter = accessible && (type === 'grass' || type === 'path') && Math.random() > 0.5;
         
         rowNodes.push({
           id: row * cols + col,
           type,
           row,
           col,
-          accessible
+          accessible,
+          hasEncounter
         });
       }
       grid.push(rowNodes);
     }
     
+    // Mark player position
+    grid[playerPos.row][playerPos.col].accessible = true;
+    grid[playerPos.row][playerPos.col].type = 'path';
+    
     setMapGrid(grid);
   };
-  
-  // Handle tile click - navigate to battle screen
-  const handleTileClick = (node: MapNode) => {
-    if (!node.accessible) {
-      // In a full implementation, you might show a "can't reach" message
-      console.log(`Tile at (${node.row}, ${node.col}) is not accessible yet`);
-      return;
+
+  const handleTileClick = async (node: MapNode) => {
+    if (!node.accessible) return;
+    
+    // Move player
+    setPlayerPos({ row: node.row, col: node.col });
+    
+    // Update metadata with new position
+    if (user) {
+      try {
+        await user.update({
+          unsafeMetadata: {
+            ...user.publicMetadata,
+            playerRow: node.row,
+            playerCol: node.col
+          }
+        });
+      } catch (error) {
+        console.error('Error updating player position:', error);
+      }
     }
     
-    // Navigate to battle screen
-    // For now, we're just stubbing the navigation
-    router.push('/game/battle');
+    // Check for encounters
+    if (node.hasEncounter) {
+      router.push('/game/battle');
+    } else if (node.type === 'town') {
+      // Heal in town
+      await healPlayer();
+    } else if (node.type === 'dungeon') {
+      router.push('/game/battle?boss=true');
+    }
+    
+    // Regenerate map after movement
+    setTimeout(generateMapGrid, 100);
   };
-  
-  // Render difficulty badge with appropriate styling
+
+  const healPlayer = async () => {
+    if (!user) return;
+    
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.publicMetadata,
+          hp: 100
+        }
+      });
+      
+      setGameData(prev => ({ ...prev, hp: 100 }));
+      alert('[TOWN] HP restored to 100!');
+    } catch (error) {
+      console.error('Error healing player:', error);
+    }
+  };
+
   const renderDifficultyBadge = () => {
     const difficultyConfig = {
-      simple: { label: 'Simple Math', color: '#4CAF50' },
-      precalc: { label: 'AP Precalculus', color: '#2196F3' },
-      calculus: { label: 'AP Calculus AB', color: '#9C27B0' }
+      simple: { label: 'LVL 1', color: '#00ff00' },
+      precalc: { label: 'LVL 2', color: '#ffff00' },
+      calculus: { label: 'LVL 3', color: '#ff0000' }
     };
     
     const config = difficultyConfig[gameData.difficulty];
     
     return (
-      <div 
-        className={styles.difficultyBadge}
-        style={{ backgroundColor: config.color }}
-      >
+      <div className={styles.difficultyBadge} style={{ color: config.color }}>
         {config.label}
       </div>
     );
   };
-  
-  // Render health bar
+
   const renderHealthBar = () => {
-    const percentage = Math.max(0, Math.min(100, gameData.hp));
+    const percentage = (gameData.hp / 100) * 100;
+    const hearts = Math.ceil(gameData.hp / 20); // 5 hearts total
     
     return (
       <div className={styles.healthBarContainer}>
-        <div className={styles.healthBarLabel}>HP: {gameData.hp}/100</div>
+        <div className={styles.healthBarLabel}>
+          <span>HP:</span>
+          <span>{gameData.hp}/100</span>
+        </div>
         <div className={styles.healthBarBackground}>
           <div 
             className={styles.healthBarFill}
             style={{ width: `${percentage}%` }}
           />
+          <div style={{ 
+            position: 'absolute', 
+            top: 0, 
+            left: 0, 
+            right: 0, 
+            bottom: 0,
+            display: 'flex',
+            justifyContent: 'space-between',
+            padding: '0 2px'
+          }}>
+            {[...Array(5)].map((_, i) => (
+              <span key={i} style={{ 
+                color: i < hearts ? '#ff0000' : '#333333',
+                fontSize: '12px'
+              }}>
+                ♥
+              </span>
+            ))}
+          </div>
         </div>
       </div>
     );
   };
-  
+
+  const getTileSymbol = (type: TileType) => {
+    switch (type) {
+      case 'grass': return '.';
+      case 'path': return '.';
+      case 'water': return '~';
+      case 'mountain': return '^';
+      case 'town': return 'T';
+      case 'dungeon': return 'D';
+      default: return '.';
+    }
+  };
+
   if (!isLoaded || isUpdatingMetadata) {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingPixel}></div>
-        <p className={styles.loadingText}>Loading game data...</p>
+        <p className={styles.loadingText}>LOADING...</p>
       </div>
     );
   }
   
   if (!user) {
-    return (
-      <div>
-        <NotUser/> 
-      </div>
-    );
+    return <NotUser />;
   }
-  
+
   return (
     <div className={styles.gameContainer}>
-      {/* Game Header with Player Stats */}
+      {/* Header */}
       <header className={styles.gameHeader}>
-        <div className={styles.playerInfo}>
-          <h1 className={styles.gameTitle}>16-Bit Math Level Game</h1>
-          <div className={styles.playerStats}>
-            <div className={styles.statItem}>
-              <span className={styles.statLabel}>Player:</span>
-              <span className={styles.statValue}>{user.firstName || 'Adventurer'}</span>
-            </div>
-            <div className={styles.statItem}>
-              <span className={styles.statLabel}>Difficulty:</span>
-              {renderDifficultyBadge()}
-            </div>
+        <h1 className={styles.gameTitle}> Retro Shift </h1>
+        
+        <div className={styles.playerStats}>
+          <div className={styles.statItem}>
+            <span className={styles.statLabel}>PLAYER:</span>
+            <span className={styles.statValue}>{user.firstName?.toUpperCase() || 'ADVENTURER'}</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statLabel}>LEVEL:</span>
+            <span className={styles.statValue}>{gameData.level}</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statLabel}>DIFF:</span>
+            {renderDifficultyBadge()}
           </div>
         </div>
         
-        {/* Game Stats Display */}
-        <div className={styles.gameStats}>
-          {renderHealthBar()}
-          
-          <div className={styles.statsGrid}>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>{gameData.wins}</div>
-              <div className={styles.statName}>Wins</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>{gameData.losses}</div>
-              <div className={styles.statName}>Losses</div>
-            </div>
-            <div className={styles.statCard}>
-              <div className={styles.statNumber}>
-                {gameData.wins + gameData.losses > 0 
-                  ? Math.round((gameData.wins / (gameData.wins + gameData.losses)) * 100)
-                  : 0}%
-              </div>
-              <div className={styles.statName}>Win Rate</div>
-            </div>
+        {renderHealthBar()}
+        
+        <div className={styles.statsGrid}>
+          <div className={styles.statCard}>
+            <div className={styles.statNumber}>{gameData.wins}</div>
+            <div className={styles.statName}>WINS</div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statNumber}>{gameData.losses}</div>
+            <div className={styles.statName}>LOSSES</div>
+          </div>
+          <div className={styles.statCard}>
+            <div className={styles.statNumber}>{gameData.gold}</div>
+            <div className={styles.statName}>GOLD</div>
           </div>
         </div>
       </header>
       
-      {/* Main Game Content - Map Grid */}
-      <main className={styles.gameMain}>
-        <div className={styles.mapContainer}>
-          <div className={styles.mapBorder}>
-            <h2 className={styles.mapTitle}>Math Adventure Map</h2>
-            
-            {/* Map Grid */}
-            <div className={styles.mapGrid}>
-              {mapGrid.map((row, rowIndex) => (
-                <div key={`row-${rowIndex}`} className={styles.mapRow}>
-                  {row.map((node) => (
-                    <button
-                      key={node.id}
-                      className={`${styles.mapTile} ${styles[node.type]} ${
-                        node.accessible ? styles.accessible : styles.inaccessible
-                      }`}
-                      onClick={() => handleTileClick(node)}
-                      aria-label={`${node.type} tile at position ${node.row}, ${node.col}`}
-                      disabled={!node.accessible}
-                    >
-                      {/* Special icons for certain tile types */}
-                      {node.type === 'town' && (
-                        <span className={styles.tileIcon}>🏠</span>
-                      )}
-                      {node.type === 'dungeon' && (
-                        <span className={styles.tileIcon}>🏰</span>
-                      )}
-                      {node.type === 'mountain' && (
-                        <span className={styles.tileIcon}>⛰️</span>
-                      )}
-                      {node.type === 'water' && (
-                        <span className={styles.tileIcon}>🌊</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+      {/* Map */}
+      <main className={styles.mapContainer}>
+        <h2 className={styles.mapTitle}>THE DUNGEON</h2>
+        
+        <div className={styles.mapGrid}>
+          {mapGrid.map((row, rowIndex) => (
+            <div key={`row-${rowIndex}`} className={styles.mapRow}>
+              {row.map((node) => (
+                <button
+                  key={node.id}
+                  className={`${styles.mapTile} ${styles[node.type]} ${
+                    node.accessible ? styles.accessible : ''
+                  }`}
+                  onClick={() => handleTileClick(node)}
+                  disabled={!node.accessible}
+                  title={`${node.type.toUpperCase()}${node.hasEncounter ? ' [ENCOUNTER]' : ''}`}
+                >
+                  {node.row === playerPos.row && node.col === playerPos.col ? '@' : getTileSymbol(node.type)}
+                  {node.hasEncounter && node.accessible && '!'}
+                </button>
               ))}
             </div>
-            
-            {/* Map Legend */}
-            <div className={styles.mapLegend}>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendTile} ${styles.town}`}></div>
-                <span>Town (Safe Zone)</span>
-              </div>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendTile} ${styles.dungeon}`}></div>
-                <span>Dungeon (Boss)</span>
-              </div>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendTile} ${styles.path}`}></div>
-                <span>Path (Travel)</span>
-              </div>
-              <div className={styles.legendItem}>
-                <div className={`${styles.legendTile} ${styles.grass}`}></div>
-                <span>Grass (Random Encounter)</span>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
         
-        {/* Game Instructions */}
-        <div className={styles.instructions}>
-          <h3 className={styles.instructionsTitle}>How to Play</h3>
-          <ul className={styles.instructionsList}>
-            <li>Click on accessible tiles (highlighted) to move around the map</li>
-            <li>Each tile represents a different type of math challenge</li>
-            <li>Grass tiles: Random math problems based on your difficulty</li>
-            <li>Dungeon tiles: Boss battles with complex problems</li>
-            <li>Town tiles: Rest and recover health</li>
-            <li>Win battles to increase your stats and unlock new areas!</li>
-          </ul>
+        <div className={styles.mapLegend}>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendTile} ${styles.town}`}>T</div>
+            <span>TOWN (SAFE)</span>
+          </div>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendTile} ${styles.dungeon}`}>D</div>
+            <span>DUNGEON (BOSS)</span>
+          </div>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendTile} ${styles.path}`}>@</div>
+            <span>YOU</span>
+          </div>
+          <div className={styles.legendItem}>
+            <div className={`${styles.legendTile} ${styles.grass}`}>!</div>
+            <span>ENCOUNTER</span>
+          </div>
         </div>
       </main>
       
-      {/* Footer with Game Controls */}
+      {/* Controls */}
       <footer className={styles.gameFooter}>
         <div className={styles.controls}>
           <button 
             className={styles.controlButton}
             onClick={() => router.push('/game/battle')}
           >
-            Test Battle Screen
+            QUICK BATTLE
           </button>
           <button 
             className={styles.controlButtonSecondary}
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              generateMapGrid();
+              alert('MAP REFRESHED');
+            }}
           >
-            Refresh Game
+            REFRESH MAP
           </button>
         </div>
         <div className={styles.gameHint}>
-          <p>Tip: Complete battles to unlock new areas of the map!</p>
+          <p>MOVE TO ADJACENT TILES | ENCOUNTERS = MATH BATTLES | TOWN = HEAL</p>
         </div>
       </footer>
     </div>
