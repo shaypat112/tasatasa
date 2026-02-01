@@ -6,7 +6,6 @@ import Link from "next/link";
 import NotUser from "../components/NoUserLogin";
 import { useRef } from "react";
 
-
 export default function SettingsPage() {
   const { user, isLoaded } = useUser();
 
@@ -14,27 +13,41 @@ export default function SettingsPage() {
   const [showHints, setShowHints] = useState(true);
   const [timerEnabled, setTimerEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [difficultySpeed, setDifficultySpeed] =
-    useState<"slow" | "normal" | "fast">("normal");
+  const [difficultySpeed, setDifficultySpeed] = useState<
+    "slow" | "normal" | "fast"
+  >("normal");
 
   const [status, setStatus] = useState("");
   const initialized = useRef(false);
+  type SettingsState = {
+    mathMode: string;
+    showHints: boolean;
+    timerEnabled: boolean;
+    soundEnabled: boolean;
+    difficultySpeed: "slow" | "normal" | "fast";
+  };
 
-useEffect(() => {
-  if (!isLoaded || !user || initialized.current) return;
+  const [settings, setSettings] = useState<SettingsState>({
+    mathMode: "simple",
+    showHints: true,
+    timerEnabled: false,
+    soundEnabled: true,
+    difficultySpeed: "normal",
+  });
 
-  initialized.current = true;
+  useEffect(() => {
+    if (!isLoaded || !user) return;
 
-  setMathMode((user.publicMetadata.mathMode as string) || "simple");
-  setShowHints((user.publicMetadata.showHints as boolean) ?? true);
-  setTimerEnabled((user.publicMetadata.timerEnabled as boolean) ?? false);
-  setSoundEnabled((user.publicMetadata.soundEnabled as boolean) ?? true);
-  setDifficultySpeed(
-    (user.publicMetadata.difficultySpeed as "slow" | "normal" | "fast") ??
-      "normal"
-  );
-}, [user, isLoaded]);
-
+    setSettings({
+      mathMode: (user.publicMetadata.mathMode as string) || "simple",
+      showHints: (user.publicMetadata.showHints as boolean) ?? true,
+      timerEnabled: (user.publicMetadata.timerEnabled as boolean) ?? false,
+      soundEnabled: (user.publicMetadata.soundEnabled as boolean) ?? true,
+      difficultySpeed:
+        (user.publicMetadata.difficultySpeed as "slow" | "normal" | "fast") ??
+        "normal",
+    });
+  }, [isLoaded, user]);
 
   async function saveSettings() {
     setStatus("SAVING...");
@@ -55,7 +68,7 @@ useEffect(() => {
     setStatus(res.ok ? "SAVED" : "ERROR");
   }
 
-  if (!isLoaded || !user) return <NotUser/>;
+  if (!isLoaded || !user) return <NotUser />;
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center text-white">
@@ -68,8 +81,8 @@ useEffect(() => {
         }}
       >
         <h1 style={{ textAlign: "center", marginBottom: "40px" }}>
-          GAME SETTINGS FOR 
-          <br/> <br/> <div style={{"fontSize":"24px"}}>{user.fullName}</div>
+          GAME SETTINGS FOR
+          <br /> <br /> <div style={{ fontSize: "24px" }}>{user.fullName}</div>
         </h1>
 
         {/* Math Mode */}
@@ -95,11 +108,7 @@ useEffect(() => {
           value={timerEnabled}
           onToggle={setTimerEnabled}
         />
-        <Toggle
-          label="SOUND"
-          value={soundEnabled}
-          onToggle={setSoundEnabled}
-        />
+        <Toggle label="SOUND" value={soundEnabled} onToggle={setSoundEnabled} />
 
         {/* Difficulty Speed */}
         <section style={{ marginBottom: "40px" }}>
@@ -153,10 +162,7 @@ function Toggle({
   return (
     <section style={{ marginBottom: "24px" }}>
       <p>{label}</p>
-      <button
-        onClick={() => onToggle(!value)}
-        style={secondaryButton}
-      >
+      <button onClick={() => onToggle(!value)} style={secondaryButton}>
         {value ? "ON" : "OFF"}
       </button>
     </section>
