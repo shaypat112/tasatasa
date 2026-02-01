@@ -385,7 +385,7 @@ export default function GameDashboard() {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleSection}>
-          <h1 className={styles.title}>MATH BATTLE RPG</h1>
+          <h1 className={styles.title}>Retro Shift </h1>
           <p className={styles.subtitle}>A Retro Dashboard Interface</p>
         </div>
         <div className={styles.userInfo}>
@@ -676,9 +676,9 @@ export default function GameDashboard() {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerLinks}>
-            <span className={styles.footerLink}>© 2024 Math Battle RPG</span>
+            <span className={styles.footerLink}>© 2026 RetroShift</span>
             <span className={styles.footerLink}>•</span>
-            <span className={styles.footerLink}>Retro Dashboard v1.0</span>
+            <span className={styles.footerLink}>Retro Shift</span>
             <span className={styles.footerLink}>•</span>
             <button
               className={styles.button}

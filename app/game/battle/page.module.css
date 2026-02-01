@@ -1,14 +1,15 @@
 /* Retro B&W Battle Arena Styles */
 .battleContainer {
   min-height: 100vh;
-  background: #000000;
-  color: #ffffff;
-  font-family: 'Courier New', 'Monaco', monospace;
+  width: 100%;
+  background-image: url("/bgmath.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  /* optional but recommended */
   display: flex;
   flex-direction: column;
-  border: 2px solid #ffffff;
-  box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1);
-  overflow: hidden;
 }
 
 /* CRT Scanline Effect */
@@ -37,10 +38,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(
-    rgba(18, 16, 16, 0) 50%,
-    rgba(255, 255, 255, 0.02) 50%
-  );
+ ;
   background-size: 100% 4px;
   animation: scanline 8s linear infinite;
   pointer-events: none;
@@ -54,7 +52,6 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #000000;
   gap: 20px;
   border: 2px solid #ffffff;
 }
@@ -79,7 +76,6 @@
 
 /* Header */
 .header {
-  background: #111;
   border-bottom: 2px solid #fff;
   padding: 15px 30px;
   display: flex;
@@ -108,9 +104,9 @@
 }
 
 .backButton {
-  background: #000;
+  opacity: 30%;
   border: 1px solid #fff;
-  color: #fff;
+  color: #3e3d3d;
   padding: 8px 15px;
   font-family: 'Courier New', monospace;
   font-size: 11px;
@@ -123,7 +119,7 @@
 
 .backButton:hover {
   background: #fff;
-  color: #000;
+  color: #d60d0d;
   box-shadow: 2px 2px 0px #fff;
   transform: translate(-1px, -1px);
 }
@@ -145,7 +141,6 @@
 
 .scoreDisplay, .comboDisplay {
   padding: 8px 15px;
-  background: #000;
   border: 1px solid #fff;
   font-size: 11px;
   text-transform: uppercase;
@@ -188,8 +183,6 @@
   gap: 30px;
   align-items: center;
   padding: 30px;
-  background: #111;
-  border: 2px solid #fff;
   border-radius: 0;
   position: relative;
 }
@@ -200,7 +193,6 @@
   top: -12px;
   left: 50%;
   transform: translateX(-50%);
-  background: #000;
   padding: 0 20px;
   color: #fff;
   font-size: 11px;
@@ -213,8 +205,7 @@
   align-items: center;
   gap: 20px;
   padding: 20px;
-  background: #000;
-  border: 1px solid #fff;
+  border: 1px solid #555353;
   border-radius: 0;
   transition: all 0.3s ease;
   position: relative;
@@ -242,9 +233,7 @@
 }
 
 .asciiBox {
-  background: #111;
   padding: 15px;
-  border: 1px solid #333;
   border-radius: 0;
 }
 
@@ -302,7 +291,6 @@
 .hpBarContainer {
   flex: 1;
   height: 10px;
-  background: #222;
   border: 1px solid #555;
   border-radius: 0;
   overflow: hidden;
@@ -350,7 +338,6 @@
 
 .statusItem, .rewardItem {
   padding: 4px 8px;
-  background: #111;
   border: 1px solid #333;
   border-radius: 0;
   font-size: 10px;
@@ -375,8 +362,6 @@
 .vsBadge {
   width: 50px;
   height: 50px;
-  background: #000;
-  border: 2px solid #fff;
   color: #fff;
   border-radius: 0;
   display: flex;
@@ -390,9 +375,8 @@
 
 .roundInfo {
   padding: 5px 15px;
-  background: #000;
-  border: 1px solid #fff;
   color: #fff;
+  border-radius: 90px;
   font-size: 11px;
   font-weight: bold;
   text-transform: uppercase;
@@ -401,7 +385,6 @@
 
 /* Problem Section */
 .problemSection {
-  background: #111;
   border: 2px solid #fff;
   border-radius: 0;
   overflow: hidden;
@@ -413,7 +396,6 @@
   position: absolute;
   top: -12px;
   left: 20px;
-  background: #000;
   padding: 0 10px;
   color: #fff;
   font-size: 11px;
@@ -422,7 +404,6 @@
 }
 
 .problemHeader {
-  background: #000;
   border-bottom: 1px solid #fff;
   padding: 15px 20px;
   display: flex;
@@ -453,7 +434,7 @@
 }
 
 .timerValue {
-  background: #000;
+opacity: 50%;
   border: 1px solid #fff;
   padding: 5px 15px;
   font-size: 14px;
@@ -467,7 +448,7 @@
 .timerValue.warning {
   color: #fff;
   animation: blink 0.5s infinite;
-  background: #333;
+ 
 }
 
 /* Problem Box */
@@ -481,7 +462,7 @@
   align-items: center;
   margin-bottom: 20px;
   padding: 20px;
-  background: #000;
+  opacity: 60%;
   border: 1px solid #333;
 }
 
@@ -527,8 +508,6 @@
 
 .answerInput {
   flex: 1;
-  background: #000;
-  border: 1px solid #fff;
   color: #fff;
   padding: 12px 15px;
   font-family: 'Courier New', monospace;
@@ -540,7 +519,6 @@
 
 .answerInput:focus {
   outline: none;
-  border-color: #fff;
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
   background: #111;
 }
@@ -552,9 +530,8 @@
 }
 
 .submitButton {
-  background: #000;
-  color: #fff;
-  border: 2px solid #fff;
+  opacity: 60%;
+  color: #010101;
   padding: 12px 25px;
   font-family: 'Courier New', monospace;
   font-size: 13px;
@@ -579,10 +556,9 @@
 }
 
 .submitButton:disabled {
-  opacity: 0.3;
   cursor: not-allowed;
   border-color: #555;
-  color: #555;
+  color: #f3e2e2;
 }
 
 .quickChoices {
@@ -599,7 +575,6 @@
 }
 
 .quickChoice {
-  background: #000;
   border: 1px solid #aaa;
   color: #aaa;
   padding: 8px 15px;
@@ -613,7 +588,6 @@
 
 .quickChoice:hover:not(:disabled) {
   background: #111;
-  border-color: #fff;
   color: #fff;
 }
 
@@ -666,7 +640,6 @@
 
 /* Battle Log */
 .logSection {
-  background: #111;
   border: 2px solid #fff;
   border-radius: 0;
   overflow: hidden;
@@ -681,7 +654,6 @@
   position: absolute;
   top: -12px;
   left: 20px;
-  background: #000;
   padding: 0 10px;
   color: #fff;
   font-size: 11px;
@@ -690,7 +662,6 @@
 }
 
 .logHeader {
-  background: #000;
   border-bottom: 1px solid #fff;
   padding: 15px 20px;
   display: flex;
@@ -708,8 +679,7 @@
 }
 
 .fleeButton {
-  background: #000;
-  border: 1px solid #888;
+    border: 1px solid #888;
   color: #888;
   padding: 8px 15px;
   font-family: 'Courier New', monospace;
@@ -741,15 +711,14 @@
   flex-direction: column;
   gap: 8px;
   max-height: 200px;
-  background: #000;
 }
 
 .logEntry {
   padding: 8px 12px;
-  background: #111;
+  background: #e6e4e4;
   border: 1px solid #333;
   font-size: 11px;
-  color: #aaa;
+  color: #0e0e0e;
   border-left: 3px solid #fff;
   animation: fadeIn 0.3s ease;
   position: relative;
