@@ -1,11 +1,10 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
-import styles from '../page.module.css';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import styles from './page.module.css';
 
-// Battle types and interfaces
 interface BattleStats {
   playerHp: number;
   enemyHp: number;
@@ -13,6 +12,7 @@ interface BattleStats {
   enemyMaxHp: number;
   turn: 'player' | 'enemy';
   battleStatus: 'active' | 'won' | 'lost' | 'fled';
+  round: number;
 }
 
 interface MathProblem {
@@ -22,6 +22,7 @@ interface MathProblem {
   choices: number[];
   difficulty: 'simple' | 'precalc' | 'calculus';
   explanation: string;
+  timeLimit: number;
 }
 
 interface Enemy {
@@ -32,187 +33,268 @@ interface Enemy {
   description: string;
   damage: number;
   maxHp: number;
+  xpReward: number;
+  goldReward: number;
+  ascii: string[];
 }
+
+const ENEMIES: Enemy[] = [
+  {
+    id: 1,
+    name: 'Arithmetic Golem',
+    type: 'arithmetic',
+    difficulty: 'simple',
+    description: 'Basic arithmetic operations',
+    damage: 10,
+    maxHp: 80,
+    xpReward: 10,
+    goldReward: 5,
+    ascii: [
+      "  ▄▄▄▄▄  ",
+      " ███████ ",
+      "██  ██  ██",
+      "███    ███",
+      " ███████ ",
+      "  ▀▀▀▀▀  "
+    ]
+  },
+  {
+    id: 2,
+    name: 'Fraction Fiend',
+    type: 'algebra',
+    difficulty: 'simple',
+    description: 'Fractions and basic algebra',
+    damage: 12,
+    maxHp: 70,
+    xpReward: 15,
+    goldReward: 8,
+    ascii: [
+      "   ███   ",
+      "  █████  ",
+      " ██▀▀▀██ ",
+      "██▄▄▄▄▄██",
+      " ███████ ",
+      "  ▀▀▀▀▀  "
+    ]
+  },
+  {
+    id: 3,
+    name: 'Trigonometry Titan',
+    type: 'algebra',
+    difficulty: 'precalc',
+    description: 'Trigonometric functions',
+    damage: 15,
+    maxHp: 100,
+    xpReward: 25,
+    goldReward: 15,
+    ascii: [
+      "  ▄▄▄▄▄▄  ",
+      " ████████ ",
+      "██░░░░░░██",
+      "██░████░██",
+      "██░░░░░░██",
+      " ████████ ",
+      "  ▀▀▀▀▀▀  "
+    ]
+  },
+  {
+    id: 4,
+    name: 'Logarithmic Lich',
+    type: 'algebra',
+    difficulty: 'precalc',
+    description: 'Logarithms and exponents',
+    damage: 18,
+    maxHp: 90,
+    xpReward: 30,
+    goldReward: 20,
+    ascii: [
+      "   ▄▄▄   ",
+      "  █████  ",
+      " ██▀▀▀██ ",
+      "███▄▄▄███",
+      " ███████ ",
+      "  ▀▀█▀▀  "
+    ]
+  },
+  {
+    id: 5,
+    name: 'Derivative Dragon',
+    type: 'calculus',
+    difficulty: 'calculus',
+    description: 'Derivatives and rates of change',
+    damage: 20,
+    maxHp: 120,
+    xpReward: 50,
+    goldReward: 30,
+    ascii: [
+      "    ▄▄▄▄▄    ",
+      "   ███████   ",
+      "  ██▀▀▀▀▀██  ",
+      " ██▄▄▄▄▄▄▄██ ",
+      "██▀▀▀▀▀▀▀▀▀██",
+      " ███████████ ",
+      "  ▀▀▀▀▀▀▀▀▀  "
+    ]
+  },
+  {
+    id: 6,
+    name: 'Integral Behemoth',
+    type: 'calculus',
+    difficulty: 'calculus',
+    description: 'Integration and area under curves',
+    damage: 22,
+    maxHp: 110,
+    xpReward: 60,
+    goldReward: 35,
+    ascii: [
+      "  ▄▄▄▄▄▄▄  ",
+      " █████████ ",
+      "██▄▄▄▄▄▄▄██",
+      "██▀▀▀▀▀▀▀██",
+      "██▄▄▄▄▄▄▄██",
+      " █████████ ",
+      "  ▀▀▀▀▀▀▀  "
+    ]
+  }
+];
 
 export default function BattlePage() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const monsterId = searchParams.get('monster');
+  const isRandom = searchParams.get('random') === 'true';
   
-  // Battle state
   const [battleStats, setBattleStats] = useState<BattleStats>({
     playerHp: 100,
     enemyHp: 100,
     playerMaxHp: 100,
     enemyMaxHp: 100,
     turn: 'player',
-    battleStatus: 'active'
+    battleStatus: 'active',
+    round: 1
   });
-  const DIFFICULTY_CONFIG = {
-  simple: {
-    damageMultiplier: 1,
-    enemyDamageMultiplier: 1,
-    healOnWin: 15,
-    xpReward: 10,
-  },
-  precalc: {
-    damageMultiplier: 1.4,
-    enemyDamageMultiplier: 1.2,
-    healOnWin: 25,
-    xpReward: 25,
-  },
-  calculus: {
-    damageMultiplier: 1.8,
-    enemyDamageMultiplier: 1.5,
-    healOnWin: 40,
-    xpReward: 50,
-  },
-} as const;
-
-
   
-  // Game state
   const [currentProblem, setCurrentProblem] = useState<MathProblem | null>(null);
   const [currentEnemy, setCurrentEnemy] = useState<Enemy | null>(null);
   const [userAnswer, setUserAnswer] = useState<string>('');
-  const [selectedChoice, setSelectedChoice] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
-  const [battleLog, setBattleLog] = useState<string[]>([]);
+  const [battleLog, setBattleLog] = useState<string[]>(['Battle initialized. Prepare for combat!']);
   const [playerDifficulty, setPlayerDifficulty] = useState<'simple' | 'precalc' | 'calculus'>('simple');
-  const [isUpdatingMetadata, setIsUpdatingMetadata] = useState<boolean>(false);
-  const [difficultyLocked, setDifficultyLocked] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [score, setScore] = useState<number>(0);
+  const [combo, setCombo] = useState<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize battle based on user difficulty
   useEffect(() => {
     if (!isLoaded || !user) return;
     
-    const initializeBattle = async () => {
+    const initializeBattle = () => {
       try {
         const metadata = user.publicMetadata;
         const difficulty = metadata.difficulty as 'simple' | 'precalc' | 'calculus' || 'simple';
         setPlayerDifficulty(difficulty);
         
-        // Load player stats from metadata
         const playerHp = typeof metadata.hp === 'number' ? metadata.hp : 100;
-        const playerMaxHp = 100; // Max HP is always 100
         
-        // Generate enemy based on difficulty
-        const enemy = generateEnemy(difficulty);
+        // Select enemy
+        let enemy: Enemy;
+        if (monsterId) {
+          enemy = ENEMIES.find(e => e.id === parseInt(monsterId)) || ENEMIES[0];
+        } else if (isRandom) {
+          const unlockedEnemies = ENEMIES.filter(e => 
+            e.difficulty === difficulty || 
+            (difficulty === 'precalc' && e.difficulty === 'simple') ||
+            (difficulty === 'calculus' && ['simple', 'precalc'].includes(e.difficulty))
+          );
+          enemy = unlockedEnemies[Math.floor(Math.random() * unlockedEnemies.length)];
+        } else {
+          // Default to first enemy
+          enemy = ENEMIES[0];
+        }
+        
         setCurrentEnemy(enemy);
         
-        // Generate first math problem
+        // Generate first problem
         const problem = generateMathProblem(difficulty);
         setCurrentProblem(problem);
         
-        // Initialize battle stats
         setBattleStats(prev => ({
           ...prev,
           playerHp,
-          playerMaxHp,
           enemyHp: enemy.maxHp,
           enemyMaxHp: enemy.maxHp
         }));
         
-        // Initial battle log entry
-        setBattleLog(prev => [...prev, `A wild ${enemy.name} appears!`, `Difficulty: ${difficulty.toUpperCase()}`]);
+        addToBattleLog(`ENCOUNTER: ${enemy.name}`);
+        addToBattleLog(`DIFFICULTY: ${difficulty.toUpperCase()}`);
+        
+        // Start timer
+        setTimeLeft(problem.timeLimit);
         
       } catch (error) {
         console.error('Error initializing battle:', error);
-        // Default fallback
-        const enemy = generateEnemy('simple');
+        const enemy = ENEMIES[0];
         const problem = generateMathProblem('simple');
         setCurrentEnemy(enemy);
         setCurrentProblem(problem);
-        setBattleStats(prev => ({
-          ...prev,
-          enemyHp: enemy.maxHp,
-          enemyMaxHp: enemy.maxHp
-        }));
-        setBattleLog(prev => [...prev, `A wild ${enemy.name} appears!`, `Battle initialized with simple difficulty.`]);
+        addToBattleLog('Battle initialized with simple difficulty.');
       }
     };
     
     initializeBattle();
-  }, [user, isLoaded]);
-  
-  // Generate enemy based on difficulty
-  const generateEnemy = useCallback((difficulty: string): Enemy => {
-    const enemies: Record<string, Enemy[]> = {
-      simple: [
-        {
-          id: 1,
-          name: 'Arithmetic Golem',
-          type: 'arithmetic',
-          difficulty: 'simple',
-          description: 'A creature made of numbers and basic operations',
-          damage: 10,
-          maxHp: 80
-        },
-        {
-          id: 2,
-          name: 'Fraction Fiend',
-          type: 'algebra',
-          difficulty: 'simple',
-          description: 'Lurks in the shadows of denominators',
-          damage: 12,
-          maxHp: 70
-        }
-      ],
-      precalc: [
-        {
-          id: 3,
-          name: 'Trigonometry Titan',
-          type: 'algebra',
-          difficulty: 'precalc',
-          description: 'Wielder of sine, cosine, and tangent',
-          damage: 15,
-          maxHp: 100
-        },
-        {
-          id: 4,
-          name: 'Logarithmic Lich',
-          type: 'algebra',
-          difficulty: 'precalc',
-          description: 'Master of exponential decay and growth',
-          damage: 18,
-          maxHp: 90
-        }
-      ],
-      calculus: [
-        {
-          id: 5,
-          name: 'Derivative Dragon',
-          type: 'calculus',
-          difficulty: 'calculus',
-          description: 'Breathes rates of change and slopes',
-          damage: 20,
-          maxHp: 120
-        },
-        {
-          id: 6,
-          name: 'Integral Behemoth',
-          type: 'calculus',
-          difficulty: 'calculus',
-          description: 'Guards the area under curves',
-          damage: 22,
-          maxHp: 110
-        }
-      ]
-    };
     
-    const difficultyEnemies = enemies[difficulty] || enemies.simple;
-    return difficultyEnemies[Math.floor(Math.random() * difficultyEnemies.length)];
-  }, []);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [user, isLoaded, monsterId, isRandom]);
+  useEffect(() => {
+  if (battleStats.battleStatus !== "active" || !currentProblem) return;
+
+  timerRef.current = setInterval(() => {
+    setTimeLeft(prev => {
+      if (prev <= 1) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+        handleTimeOut();
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+
+  return () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+}, [battleStats.battleStatus, currentProblem]);
+
   
-  // Generate math problem based on difficulty
+  useEffect(() => {
+    if (inputRef.current && battleStats.turn === 'player') {
+      inputRef.current.focus();
+    }
+  }, [battleStats.turn, currentProblem]);
+
+  const addToBattleLog = (message: string) => {
+    setBattleLog(prev => [`[${new Date().toLocaleTimeString()}] ${message}`, ...prev.slice(0, 8)]);
+  };
+
   const generateMathProblem = useCallback((difficulty: string): MathProblem => {
     let question = '';
     let answer = 0;
     let explanation = '';
+    let timeLimit = 30;
     
     switch (difficulty) {
       case 'simple':
-        // Simple arithmetic
         const num1 = Math.floor(Math.random() * 20) + 1;
         const num2 = Math.floor(Math.random() * 20) + 1;
         const operations = ['+', '-', '*'];
@@ -222,12 +304,14 @@ export default function BattlePage() {
           case '+':
             answer = num1 + num2;
             question = `${num1} + ${num2} = ?`;
-            explanation = `Add ${num1} and ${num2} together`;
+            explanation = `Add ${num1} and ${num2}`;
+            timeLimit = 20;
             break;
           case '-':
             answer = Math.max(num1, num2) - Math.min(num1, num2);
             question = `${Math.max(num1, num2)} - ${Math.min(num1, num2)} = ?`;
-            explanation = `Subtract the smaller number from the larger number`;
+            explanation = `Subtract ${Math.min(num1, num2)} from ${Math.max(num1, num2)}`;
+            timeLimit = 20;
             break;
           case '*':
             const smallNum1 = Math.floor(Math.random() * 12) + 1;
@@ -235,12 +319,12 @@ export default function BattlePage() {
             answer = smallNum1 * smallNum2;
             question = `${smallNum1} × ${smallNum2} = ?`;
             explanation = `Multiply ${smallNum1} by ${smallNum2}`;
+            timeLimit = 25;
             break;
         }
         break;
         
       case 'precalc':
-        // Precalculus problems
         const problemTypes = ['algebra', 'trig', 'log'];
         const problemType = problemTypes[Math.floor(Math.random() * problemTypes.length)];
         
@@ -250,40 +334,49 @@ export default function BattlePage() {
             const b = Math.floor(Math.random() * 10) + 1;
             const c = Math.floor(Math.random() * 10) + 1;
             answer = (c - b) / a;
-            question = `Solve for x: ${a}x + ${b} = ${c}`;
-            explanation = `Subtract ${b} from both sides, then divide by ${a}`;
+            question = `Solve: ${a}x + ${b} = ${c}`;
+            explanation = `x = (${c} - ${b}) / ${a}`;
+            timeLimit = 30;
             break;
           case 'trig':
-            const angle = Math.floor(Math.random() * 4) * 90; // 0, 90, 180, 270
-            const trigFuncs = ['sin', 'cos'];
+            const angles = [0, 30, 45, 60, 90, 180, 270, 360];
+            const angle = angles[Math.floor(Math.random() * angles.length)];
+            const trigFuncs = ['sin', 'cos', 'tan'];
             const trigFunc = trigFuncs[Math.floor(Math.random() * trigFuncs.length)];
             
             switch (trigFunc) {
               case 'sin':
-                answer = Math.sin(angle * Math.PI / 180);
+                answer = Math.round(Math.sin(angle * Math.PI / 180) * 100) / 100;
                 question = `sin(${angle}°) = ?`;
                 explanation = `Sine of ${angle} degrees`;
                 break;
               case 'cos':
-                answer = Math.cos(angle * Math.PI / 180);
+                answer = Math.round(Math.cos(angle * Math.PI / 180) * 100) / 100;
                 question = `cos(${angle}°) = ?`;
                 explanation = `Cosine of ${angle} degrees`;
                 break;
+              case 'tan':
+                answer = Math.round(Math.tan(angle * Math.PI / 180) * 100) / 100;
+                question = `tan(${angle}°) = ?`;
+                explanation = `Tangent of ${angle} degrees`;
+                break;
             }
+            timeLimit = 35;
             break;
           case 'log':
-            const base = Math.floor(Math.random() * 3) + 2; // 2, 3, 4
-            const value = Math.pow(base, Math.floor(Math.random() * 3) + 1); // base^2, base^3, base^4
-            answer = Math.log(value) / Math.log(base);
+            const base = Math.floor(Math.random() * 3) + 2;
+            const exponent = Math.floor(Math.random() * 4) + 1;
+            const value = Math.pow(base, exponent);
+            answer = exponent;
             question = `log_${base}(${value}) = ?`;
-            explanation = `The exponent that raises ${base} to get ${value}`;
+            explanation = `${base}^? = ${value}`;
+            timeLimit = 35;
             break;
         }
         break;
         
       case 'calculus':
-        // Calculus problems
-        const calcTypes = ['derivative', 'integral'];
+        const calcTypes = ['derivative', 'integral', 'limit'];
         const calcType = calcTypes[Math.floor(Math.random() * calcTypes.length)];
         
         switch (calcType) {
@@ -291,22 +384,50 @@ export default function BattlePage() {
             const coeff = Math.floor(Math.random() * 5) + 1;
             const power = Math.floor(Math.random() * 3) + 2;
             answer = coeff * power;
-            question = `d/dx [${coeff}x^${power}] = ?`;
-            explanation = `Multiply coefficient ${coeff} by power ${power}`;
+            question = `d/dx [${coeff}x^${power}] at x=1`;
+            explanation = `${coeff}*${power}*x^${power-1}`;
+            timeLimit = 40;
             break;
           case 'integral':
             const intCoeff = Math.floor(Math.random() * 4) + 1;
             const intPower = Math.floor(Math.random() * 2) + 1;
             answer = intCoeff / (intPower + 1);
-            question = `∫${intCoeff}x^${intPower} dx = ? (evaluate at x=1, ignore +C)`;
-            explanation = `Divide coefficient ${intCoeff} by ${intPower + 1}`;
+            question = `∫${intCoeff}x^${intPower} dx (x=1, ignore +C)`;
+            explanation = `${intCoeff}x^${intPower+1}/${intPower+1}`;
+            timeLimit = 45;
+            break;
+          case 'limit':
+            answer = 1;
+            question = `lim(x→0) sin(x)/x`;
+            explanation = `Standard limit = 1`;
+            timeLimit = 40;
             break;
         }
         break;
     }
     
-    // Generate multiple choice options
-    const choices = generateChoices(answer, difficulty);
+    // Generate choices
+    const choices = [answer];
+    for (let i = 0; i < 3; i++) {
+      let wrongAnswer;
+      if (difficulty === 'calculus') {
+        wrongAnswer = answer + (Math.random() > 0.5 ? 0.5 : -0.5) * (i + 1);
+      } else {
+        wrongAnswer = answer + (Math.random() > 0.5 ? 1 : -1) * (i + 1);
+      }
+      
+      if (choices.includes(wrongAnswer)) {
+        wrongAnswer += 1;
+      }
+      
+      choices.push(wrongAnswer);
+    }
+    
+    // Shuffle
+    for (let i = choices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [choices[i], choices[j]] = [choices[j], choices[i]];
+    }
     
     return {
       id: Date.now(),
@@ -314,89 +435,86 @@ export default function BattlePage() {
       answer,
       choices,
       difficulty: difficulty as 'simple' | 'precalc' | 'calculus',
-      explanation
+      explanation,
+      timeLimit
     };
   }, []);
-  
-  // Generate multiple choice options
-  const generateChoices = useCallback((correctAnswer: number, difficulty: string): number[] => {
-    const choices = [correctAnswer];
+
+  const handleTimeOut = () => {
+    if (battleStats.battleStatus !== 'active') return;
     
-    // Generate 3 wrong answers based on difficulty
-    for (let i = 0; i < 3; i++) {
-      let wrongAnswer;
-      
-      switch (difficulty) {
-        case 'simple':
-          wrongAnswer = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 1);
-          break;
-        case 'precalc':
-          wrongAnswer = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 3) + 1);
-          break;
-        case 'calculus':
-          wrongAnswer = correctAnswer + (Math.random() > 0.5 ? 0.5 : -0.5) * (Math.floor(Math.random() * 4) + 1);
-          break;
-        default:
-          wrongAnswer = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 1);
-      }
-      
-      // Ensure wrong answer is different from correct answer and other wrong answers
-      while (choices.includes(wrongAnswer) || wrongAnswer === correctAnswer) {
-        wrongAnswer += (Math.random() > 0.5 ? 1 : -1);
-      }
-      
-      choices.push(wrongAnswer);
-    }
+    const damage = currentEnemy?.damage || 10;
+    const newPlayerHp = Math.max(0, battleStats.playerHp - damage);
     
-    // Shuffle the choices
-    return choices.sort(() => Math.random() - 0.5);
-  }, []);
-  
-  // Handle answer submission
-  const handleSubmitAnswer = useCallback(async () => {
-    if (!currentProblem || !currentEnemy || isProcessing || battleStats.battleStatus !== 'active') return;
+    setBattleStats(prev => ({
+      ...prev,
+      playerHp: newPlayerHp,
+      turn: 'enemy'
+    }));
     
-    setIsProcessing(true);
-    const submittedAnswer = selectedChoice !== null ? selectedChoice : parseFloat(userAnswer);
+    setFeedback('TIME OUT! You took damage!');
+    setCombo(0);
+    addToBattleLog(`Time out! Took ${damage} damage.`);
     
-    if (isNaN(submittedAnswer)) {
-      setFeedback('Please enter a valid number or select an option!');
-      setIsProcessing(false);
+    if (newPlayerHp <= 0) {
+      handleBattleLoss();
       return;
     }
     
-    const isCorrect = Math.abs(submittedAnswer - currentProblem.answer) < 0.001; // Allow for floating point errors
+    setTimeout(handleEnemyTurn, 1000);
+  };
+
+  const handleSubmitAnswer = async () => {
+    if (!currentProblem || !currentEnemy || isProcessing || battleStats.battleStatus !== 'active') return;
+    
+    setIsProcessing(true);
+    if (timerRef.current) {
+  clearInterval(timerRef.current);
+  timerRef.current = null;
+}
+
+    
+    const submittedAnswer = parseFloat(userAnswer);
+    const isCorrect = Math.abs(submittedAnswer - currentProblem.answer) < 0.001;
     
     if (isCorrect) {
-      // Player deals damage to enemy
-      const damageDealt = 20 + Math.floor(Math.random() * 10); // 20-29 damage
-      const newEnemyHp = Math.max(0, battleStats.enemyHp - damageDealt);
+      // Calculate damage based on time left and combo
+      const timeBonus = Math.floor(timeLeft / 5);
+      const comboBonus = combo * 2;
+      const baseDamage = 20;
+      const totalDamage = baseDamage + timeBonus + comboBonus;
+      
+      const newEnemyHp = Math.max(0, battleStats.enemyHp - totalDamage);
+      const newCombo = combo + 1;
+      const newScore = score + (timeLeft * 10) + (combo * 50);
       
       setBattleStats(prev => ({
         ...prev,
         enemyHp: newEnemyHp,
-        turn: 'enemy'
+        round: prev.round + 1
       }));
       
-      setFeedback(`Correct! You dealt ${damageDealt} damage to ${currentEnemy.name}!`);
-      setBattleLog(prev => [...prev, `You answered correctly and dealt ${damageDealt} damage!`]);
+      setCombo(newCombo);
+      setScore(newScore);
       
-      // Check if enemy is defeated
+      setFeedback(`CORRECT! ${totalDamage} damage! Combo: x${newCombo}`);
+      addToBattleLog(`Hit! ${totalDamage} damage (Combo: x${newCombo})`);
+      
       if (newEnemyHp <= 0) {
         await handleBattleWin();
         setIsProcessing(false);
         return;
       }
       
-      // Enemy's turn after a delay
+      // Enemy turn
       setTimeout(() => {
         handleEnemyTurn();
       }, 1500);
       
     } else {
-      // Player takes damage for wrong answer
-      const damageTaken = currentEnemy.damage + Math.floor(Math.random() * 5);
-      const newPlayerHp = Math.max(0, battleStats.playerHp - damageTaken);
+      // Incorrect answer
+      const damage = currentEnemy.damage + Math.floor(Math.random() * 5);
+      const newPlayerHp = Math.max(0, battleStats.playerHp - damage);
       
       setBattleStats(prev => ({
         ...prev,
@@ -404,35 +522,34 @@ export default function BattlePage() {
         turn: 'enemy'
       }));
       
-      setFeedback(`Incorrect! The answer was ${currentProblem.answer}. ${currentEnemy.name} deals ${damageTaken} damage!`);
-      setBattleLog(prev => [...prev, `You answered incorrectly and took ${damageTaken} damage!`]);
+      setCombo(0);
+      setFeedback(`WRONG! Answer was ${currentProblem.answer}. Took ${damage} damage!`);
+      addToBattleLog(`Wrong! Took ${damage} damage.`);
       
-      // Check if player is defeated
       if (newPlayerHp <= 0) {
         await handleBattleLoss();
         setIsProcessing(false);
         return;
       }
-      
-      // Generate new problem for next turn
-      setTimeout(() => {
-        const newProblem = generateMathProblem(playerDifficulty);
-        setCurrentProblem(newProblem);
-        setUserAnswer('');
-        setSelectedChoice(null);
-        setFeedback('');
-        setBattleStats(prev => ({ ...prev, turn: 'player' }));
-        setIsProcessing(false);
-      }, 1500);
     }
-  }, [currentProblem, currentEnemy, battleStats, userAnswer, selectedChoice, isProcessing, playerDifficulty, generateMathProblem]);
-  
-  // Handle enemy's turn
-  const handleEnemyTurn = useCallback(() => {
+    
+    // Generate new problem
+    setTimeout(() => {
+      const newProblem = generateMathProblem(playerDifficulty);
+      setCurrentProblem(newProblem);
+      setUserAnswer('');
+      setTimeLeft(newProblem.timeLimit);
+      setFeedback('');
+      setBattleStats(prev => ({ ...prev, turn: 'player' }));
+      setIsProcessing(false);
+    }, 1000);
+  };
+
+  const handleEnemyTurn = () => {
     if (!currentEnemy || battleStats.battleStatus !== 'active') return;
     
-    const damageTaken = currentEnemy.damage + Math.floor(Math.random() * 5);
-    const newPlayerHp = Math.max(0, battleStats.playerHp - damageTaken);
+    const damage = currentEnemy.damage + Math.floor(Math.random() * 8);
+    const newPlayerHp = Math.max(0, battleStats.playerHp - damage);
     
     setBattleStats(prev => ({
       ...prev,
@@ -440,316 +557,362 @@ export default function BattlePage() {
       turn: 'player'
     }));
     
-    setBattleLog(prev => [...prev, `${currentEnemy.name} attacks you for ${damageTaken} damage!`]);
+    addToBattleLog(`${currentEnemy.name} attacks for ${damage} damage!`);
     
-    // Check if player is defeated
     if (newPlayerHp <= 0) {
       handleBattleLoss();
-      return;
+    } else {
+      // Start timer for next player turn
+      if (currentProblem) {
+        setTimeLeft(currentProblem.timeLimit);
+      }
     }
-    
-    // Generate new problem for player's turn
-    const newProblem = generateMathProblem(playerDifficulty);
-    setCurrentProblem(newProblem);
-    setUserAnswer('');
-    setSelectedChoice(null);
-    setFeedback('');
-    setIsProcessing(false);
-  }, [currentEnemy, battleStats, playerDifficulty, generateMathProblem]);
-  
-  // Handle battle win
-  const handleBattleWin = useCallback(async () => {
+  };
+
+  const handleBattleWin = async () => {
     setBattleStats(prev => ({ ...prev, battleStatus: 'won' }));
-    setFeedback(`Victory! You defeated ${currentEnemy?.name}!`);
-    setBattleLog(prev => [...prev, `You defeated ${currentEnemy?.name}!`, 'Victory! Returning to map...']);
+    setFeedback('VICTORY! Monster defeated!');
+    addToBattleLog('*** VICTORY ***');
     
-    // Update user metadata with win
-    if (user) {
-      setIsUpdatingMetadata(true);
+    if (user && currentEnemy) {
       try {
         const metadata = user.publicMetadata;
         const currentWins = typeof metadata.wins === 'number' ? metadata.wins : 0;
+        const currentGold = typeof metadata.gold === 'number' ? metadata.gold : 0;
+        const currentXP = typeof metadata.xp === 'number' ? metadata.xp : 0;
+        const currentLevel = typeof metadata.level === 'number' ? metadata.level : 1;
+        const battleLog = Array.isArray(metadata.battleLog) ? metadata.battleLog : [];
+        
+        // Calculate XP needed for next level
+        const xpNeeded = 100 * Math.pow(1.5, currentLevel - 1);
+        const newXP = currentXP + currentEnemy.xpReward;
+        const newLevel = newXP >= xpNeeded ? currentLevel + 1 : currentLevel;
+        
+        // Add to battle log
+        const logEntry = {
+          id: Date.now(),
+          date: new Date().toISOString(),
+          enemy: currentEnemy.name,
+          result: 'won' as const,
+          xpGained: currentEnemy.xpReward,
+          goldGained: currentEnemy.goldReward
+        };
         
         await user.update({
-         unsafeMetadata: {
+          unsafeMetadata: {
             ...metadata,
             wins: currentWins + 1,
-            hp: Math.min(100, battleStats.playerHp + 20) // Heal 20 HP on win
+            gold: currentGold + currentEnemy.goldReward,
+            xp: newXP,
+            level: newLevel,
+            hp: Math.min(100, battleStats.playerHp + 20),
+            battleLog: [...battleLog, logEntry].slice(-10)
           }
         });
+        
       } catch (error) {
         console.error('Error updating metadata:', error);
-      } finally {
-        setIsUpdatingMetadata(false);
       }
     }
     
-    // Return to map after delay
     setTimeout(() => {
       router.push('/game');
     }, 3000);
-  }, [currentEnemy, user, battleStats.playerHp, router]);
-  
-  // Handle battle loss
-  const handleBattleLoss = useCallback(async () => {
+  };
+
+  const handleBattleLoss = async () => {
     setBattleStats(prev => ({ ...prev, battleStatus: 'lost' }));
-    setFeedback(`Defeat! ${currentEnemy?.name} was too strong!`);
-    setBattleLog(prev => [...prev, `You were defeated by ${currentEnemy?.name}!`, 'Returning to map...']);
+    setFeedback('DEFEAT! Try again!');
+    addToBattleLog('*** DEFEAT ***');
     
-    // Update user metadata with loss
-    if (user) {
-      setIsUpdatingMetadata(true);
+    if (user && currentEnemy) {
       try {
         const metadata = user.publicMetadata;
         const currentLosses = typeof metadata.losses === 'number' ? metadata.losses : 0;
+        const battleLog = Array.isArray(metadata.battleLog) ? metadata.battleLog : [];
+        
+        const logEntry = {
+          id: Date.now(),
+          date: new Date().toISOString(),
+          enemy: currentEnemy.name,
+          result: 'lost' as const,
+          xpGained: 0,
+          goldGained: 0
+        };
         
         await user.update({
-        unsafeMetadata: {
+          unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
-            hp: 50 // Reset to 50 HP on loss
+            hp: 50,
+            battleLog: [...battleLog, logEntry].slice(-10)
           }
         });
       } catch (error) {
         console.error('Error updating metadata:', error);
-      } finally {
-        setIsUpdatingMetadata(false);
       }
     }
     
-    // Return to map after delay
     setTimeout(() => {
       router.push('/game');
     }, 3000);
-  }, [currentEnemy, user, router]);
-  
-  // Handle flee from battle
-  const handleFlee = useCallback(async () => {
-    setBattleStats(prev => ({ ...prev, battleStatus: 'fled' }));
-    setFeedback('You fled from battle!');
-    setBattleLog(prev => [...prev, 'You fled from battle!', 'Returning to map...']);
+  };
+
+  const handleFlee = () => {
+    if (battleStats.battleStatus !== 'active') return;
     
-    // Update user metadata (flee counts as loss)
+    setBattleStats(prev => ({ ...prev, battleStatus: 'fled' }));
+    setFeedback('Retreated from battle!');
+    addToBattleLog('Retreated from battle.');
+    
     if (user) {
-      setIsUpdatingMetadata(true);
       try {
         const metadata = user.publicMetadata;
         const currentLosses = typeof metadata.losses === 'number' ? metadata.losses : 0;
+        const battleLog = Array.isArray(metadata.battleLog) ? metadata.battleLog : [];
         
-        await user.update({
-    unsafeMetadata: {
+        const logEntry = {
+          id: Date.now(),
+          date: new Date().toISOString(),
+          enemy: currentEnemy?.name || 'Unknown',
+          result: 'fled' as const,
+          xpGained: 0,
+          goldGained: 0
+        };
+        
+        user.update({
+          unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
-            hp: Math.max(1, battleStats.playerHp - 10) // Lose 10 HP for fleeing
+            hp: Math.max(1, battleStats.playerHp - 20),
+            battleLog: [...battleLog, logEntry].slice(-10)
           }
         });
       } catch (error) {
         console.error('Error updating metadata:', error);
-      } finally {
-        setIsUpdatingMetadata(false);
       }
     }
     
-    // Return to map after delay
     setTimeout(() => {
       router.push('/game');
     }, 2000);
-  }, [user, battleStats.playerHp, router]);
-  
-  // Handle key press for answer submission
-  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !isProcessing) {
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !isProcessing && battleStats.battleStatus === 'active') {
       handleSubmitAnswer();
+    } else if (e.key === 'Escape') {
+      router.push('/game');
     }
-  }, [handleSubmitAnswer, isProcessing]);
-  
+  };
+
   if (!isLoaded) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.loadingPixel}></div>
-        <p className={styles.loadingText}>Loading battle...</p>
+        <div className={styles.loadingSpinner}></div>
+        <p className={styles.loadingText}>LOADING BATTLE...</p>
       </div>
     );
   }
-  
-  if (!user) {
-    return (
-      <div className={styles.errorContainer}>
-        <p className={styles.errorText}>Please sign in to access the battle.</p>
-        <button 
-          className={styles.returnButton}
-          onClick={() => router.push('/game')}
-        >
-          Return to Map
-        </button>
-      </div>
-    );
-  }
-  
+
   return (
     <div className={styles.battleContainer}>
-      {/* Battle Header */}
-      <header className={styles.battleHeader}>
-        <h1 className={styles.battleTitle}>MATH BATTLE</h1>
-        <div className={styles.difficultyDisplay}>
-          Difficulty: <span className={styles.difficultyText}>{playerDifficulty.toUpperCase()}</span>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerLeft}>
+          <button 
+            className={styles.backButton}
+            onClick={() => router.push('/game')}
+          >
+            ← BACK TO DASHBOARD
+          </button>
+          <h1 className={styles.title}>MATH BATTLE ARENA</h1>
+        </div>
+        <div className={styles.headerRight}>
+          <div className={styles.scoreDisplay}>
+            SCORE: <span className={styles.scoreValue}>{score}</span>
+          </div>
+          <div className={styles.comboDisplay}>
+            COMBO: <span className={styles.comboValue}>x{combo}</span>
+          </div>
         </div>
       </header>
-      
-      {/* Battle Arena */}
-      <main className={styles.battleMain}>
-        {/* Enemy Display */}
-        <div className={styles.enemySection}>
-          <div className={styles.enemyCard}>
-            <h2 className={styles.enemyName}>{currentEnemy?.name || 'Loading Enemy...'}</h2>
-            <div className={styles.enemyType}>{currentEnemy?.type.toUpperCase()}</div>
-            <p className={styles.enemyDescription}>{currentEnemy?.description}</p>
-            
-            {/* Enemy HP Bar */}
-            <div className={styles.hpContainer}>
-              <div className={styles.hpLabel}>
-                ENEMY HP: {battleStats.enemyHp}/{battleStats.enemyMaxHp}
-              </div>
-              <div className={styles.hpBarBackground}>
-                <div 
-                  className={styles.hpBarFillEnemy}
-                  style={{ 
-                    width: `${(battleStats.enemyHp / battleStats.enemyMaxHp) * 100}%` 
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Battle Status */}
-        <div className={styles.battleStatus}>
-          <div className={styles.turnIndicator}>
-            {battleStats.battleStatus === 'active' && (
-              <div className={`${styles.turnDisplay} ${styles[battleStats.turn]}`}>
-                {battleStats.turn === 'player' ? 'YOUR TURN' : 'ENEMY TURN'}
-              </div>
-            )}
-          </div>
-          
-          {/* Player HP Bar */}
-          <div className={styles.playerHpContainer}>
-            <div className={styles.hpLabel}>
-              YOUR HP: {battleStats.playerHp}/{battleStats.playerMaxHp}
-            </div>
-            <div className={styles.hpBarBackground}>
-              <div 
-                className={styles.hpBarFillPlayer}
-                style={{ 
-                  width: `${(battleStats.playerHp / battleStats.playerMaxHp) * 100}%` 
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        
-        {/* Math Problem Section */}
-        <div className={styles.problemSection}>
-          <div className={styles.problemCard}>
-            <h3 className={styles.problemTitle}>MATH PROBLEM</h3>
-            
-            {currentProblem && (
-              <>
-                <div className={styles.problemQuestion}>
-                  {currentProblem.question}
-                </div>
-                
-                {/* Multiple Choice Options */}
-                <div className={styles.choiceGrid}>
-                  {currentProblem.choices.map((choice, index) => (
-                    <button
-                      key={index}
-                      className={`${styles.choiceButton} ${
-                        selectedChoice === choice ? styles.choiceSelected : ''
-                      }`}
-                      onClick={() => setSelectedChoice(choice)}
-                      disabled={isProcessing || battleStats.battleStatus !== 'active'}
-                    >
-                      {choice}
-                    </button>
+
+      <main className={styles.mainContent}>
+        {/* Battle Arena */}
+        <div className={styles.battleArena}>
+          {/* Player Section */}
+          <div className={styles.playerSection}>
+            <div className={styles.characterCard}>
+              <div className={styles.characterAscii}>
+                <div className={styles.asciiBox}>
+                  {[
+                    "   ▄▄▄▄▄   ",
+                    "  ███████  ",
+                    " ██     ██ ",
+                    "██  ███  ██",
+                    "██       ██",
+                    " ██     ██ ",
+                    "  ███████  ",
+                    "   ▀▀▀▀▀   "
+                  ].map((line, i) => (
+                    <div key={i} className={styles.asciiLine}>{line}</div>
                   ))}
                 </div>
-                
-                {/* Manual Input (for non-multiple choice) */}
-                <div className={styles.inputSection}>
-                  <div className={styles.inputLabel}>Or enter your answer:</div>
-                  <input
-                    type="number"
-                    className={styles.answerInput}
-                    value={userAnswer}
-                    onChange={(e) => {
-                      setUserAnswer(e.target.value);
-                      setSelectedChoice(null);
-                    }}
-                    onKeyPress={handleKeyPress}
-                    disabled={isProcessing || battleStats.battleStatus !== 'active'}
-                    placeholder="Enter number..."
-                    step="any"
-                  />
+              </div>
+              <div className={styles.characterInfo}>
+                <h3>{user?.firstName?.toUpperCase() || 'HERO'}</h3>
+                <div className={styles.hpBar}>
+                  <div className={styles.hpLabel}>HP</div>
+                  <div className={styles.hpBarContainer}>
+                    <div 
+                      className={styles.hpBarFill}
+                      style={{ width: `${(battleStats.playerHp / battleStats.playerMaxHp) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className={styles.hpValue}>
+                    {battleStats.playerHp}/{battleStats.playerMaxHp}
+                  </div>
+                </div>
+                <div className={styles.statusInfo}>
+                  <span className={styles.statusItem}>Level: {playerDifficulty.toUpperCase()}</span>
+                  <span className={styles.statusItem}>Turn: {battleStats.turn === 'player' ? 'YOURS' : 'ENEMY'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* VS Separator */}
+          <div className={styles.vsSection}>
+            <div className={styles.vsBadge}>VS</div>
+            <div className={styles.roundInfo}>
+              ROUND {battleStats.round}
+            </div>
+          </div>
+
+          {/* Enemy Section */}
+          <div className={styles.enemySection}>
+            <div className={styles.characterCard}>
+              <div className={styles.characterInfo}>
+                <h3>{currentEnemy?.name || 'LOADING...'}</h3>
+                <div className={styles.enemyType}>{currentEnemy?.type.toUpperCase()}</div>
+                <div className={styles.hpBar}>
+                  <div className={styles.hpLabel}>HP</div>
+                  <div className={styles.hpBarContainer}>
+                    <div 
+                      className={styles.hpBarFill}
+                      style={{ width: `${(battleStats.enemyHp / battleStats.enemyMaxHp) * 100}%` }}
+                    ></div>
+                  </div>
+                  <div className={styles.hpValue}>
+                    {battleStats.enemyHp}/{battleStats.enemyMaxHp}
+                  </div>
+                </div>
+                <div className={styles.rewardInfo}>
+                  <span className={styles.rewardItem}>🎯 {currentEnemy?.xpReward || 0} XP</span>
+                  <span className={styles.rewardItem}>💰 {currentEnemy?.goldReward || 0} Gold</span>
+                </div>
+              </div>
+              <div className={styles.characterAscii}>
+                <div className={styles.asciiBox}>
+                  {currentEnemy?.ascii?.map((line, i) => (
+                    <div key={i} className={styles.asciiLine}>{line}</div>
+                  )) || (
+                    <div className={styles.loadingAscii}>Loading...</div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Math Problem Section */}
+        <div className={styles.problemSection}>
+          <div className={styles.problemHeader}>
+            <h2>MATH CHALLENGE</h2>
+            <div className={styles.timer}>
+              <div className={styles.timerLabel}>TIME</div>
+              <div className={`${styles.timerValue} ${timeLeft < 10 ? styles.warning : ''}`}>
+                {timeLeft}s
+              </div>
+            </div>
+          </div>
+          
+          <div className={styles.problemBox}>
+            {currentProblem && (
+              <>
+                <div className={styles.problemDisplay}>
+                  <div className={styles.problemText}>{currentProblem.question}</div>
+                  <div className={styles.difficultyBadge}>
+                    {currentProblem.difficulty.toUpperCase()}
+                  </div>
                 </div>
                 
-                {/* Submit Button */}
-                <button
-                  className={styles.submitButton}
-                  onClick={handleSubmitAnswer}
-                  disabled={isProcessing || battleStats.battleStatus !== 'active' || (!selectedChoice && !userAnswer)}
-                >
-                  {isProcessing ? 'PROCESSING...' : 'SUBMIT ANSWER'}
-                </button>
+                <div className={styles.answerSection}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>YOUR ANSWER:</label>
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      disabled={isProcessing || battleStats.battleStatus !== 'active'}
+                      className={styles.answerInput}
+                      placeholder="Enter answer..."
+                    />
+                    <button
+                      className={styles.submitButton}
+                      onClick={handleSubmitAnswer}
+                      disabled={isProcessing || battleStats.battleStatus !== 'active' || !userAnswer}
+                    >
+                      SUBMIT
+                    </button>
+                  </div>
+                  
+                  <div className={styles.quickChoices}>
+                    <span className={styles.quickLabel}>QUICK SELECT:</span>
+                    {currentProblem.choices.map((choice, index) => (
+                      <button
+                        key={index}
+                        className={styles.quickChoice}
+                        onClick={() => setUserAnswer(choice.toString())}
+                        disabled={isProcessing || battleStats.battleStatus !== 'active'}
+                      >
+                        {choice}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </>
             )}
             
-            {/* Feedback Display */}
             {feedback && (
               <div className={`${styles.feedback} ${
-                feedback.includes('Correct!') ? styles.feedbackCorrect : 
-                feedback.includes('Incorrect!') ? styles.feedbackIncorrect :
-                styles.feedbackNeutral
+                feedback.includes('CORRECT') ? styles.success :
+                feedback.includes('WRONG') ? styles.error :
+                feedback.includes('TIME') ? styles.warning :
+                styles.info
               }`}>
                 {feedback}
               </div>
             )}
-            
-            {/* Battle Result Overlay */}
-            {battleStats.battleStatus !== 'active' && (
-              <div className={styles.resultOverlay}>
-                <div className={`${styles.resultMessage} ${styles[battleStats.battleStatus]}`}>
-                  {battleStats.battleStatus === 'won' && (
-                    <>
-                      <div className={styles.resultTitle}>VICTORY!</div>
-                      <div className={styles.resultSubtitle}>You earned 20 XP</div>
-                    </>
-                  )}
-                  {battleStats.battleStatus === 'lost' && (
-                    <>
-                      <div className={styles.resultTitle}>DEFEAT!</div>
-                      <div className={styles.resultSubtitle}>Better luck next time</div>
-                    </>
-                  )}
-                  {battleStats.battleStatus === 'fled' && (
-                    <>
-                      <div className={styles.resultTitle}>RETREAT!</div>
-                      <div className={styles.resultSubtitle}>You fled from battle</div>
-                    </>
-                  )}
-                  <div className={styles.returningText}>
-                    Returning to map in a few seconds...
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
-        
+
         {/* Battle Log */}
-        <div className={styles.battleLogSection}>
-          <h3 className={styles.logTitle}>BATTLE LOG</h3>
-          <div className={styles.logContainer}>
+        <div className={styles.logSection}>
+          <div className={styles.logHeader}>
+            <h3>BATTLE LOG</h3>
+            <button 
+              className={styles.fleeButton}
+              onClick={handleFlee}
+              disabled={isProcessing || battleStats.battleStatus !== 'active'}
+            >
+              FLEE BATTLE
+            </button>
+          </div>
+          <div className={styles.logContent}>
             {battleLog.map((entry, index) => (
               <div key={index} className={styles.logEntry}>
                 {entry}
@@ -758,45 +921,67 @@ export default function BattlePage() {
           </div>
         </div>
       </main>
-      
-      {/* Battle Controls */}
-      <footer className={styles.battleFooter}>
-        <div className={styles.controls}>
-          <button
-            className={styles.controlButton}
-            onClick={() => router.push('/game')}
-            disabled={isProcessing || isUpdatingMetadata}
-          >
-            RETURN TO MAP
-          </button>
-          
-          {battleStats.battleStatus === 'active' && (
-            <button
-              className={styles.fleeButton}
-              onClick={handleFlee}
-              disabled={isProcessing || isUpdatingMetadata}
-            >
-              FLEE BATTLE
-            </button>
-          )}
-          
-          <button
-            className={styles.hintButton}
-            onClick={() => currentProblem && setFeedback(`Hint: ${currentProblem.explanation}`)}
-            disabled={isProcessing || battleStats.battleStatus !== 'active'}
-          >
-            GET HINT
-          </button>
+
+      {/* Battle Result Overlay */}
+      {battleStats.battleStatus !== 'active' && (
+        <div className={styles.resultOverlay}>
+          <div className={`${styles.resultModal} ${styles[battleStats.battleStatus]}`}>
+            <h2 className={styles.resultTitle}>
+              {battleStats.battleStatus === 'won' ? 'VICTORY!' :
+               battleStats.battleStatus === 'lost' ? 'DEFEAT!' : 'RETREAT!'}
+            </h2>
+            
+            <div className={styles.resultContent}>
+              {battleStats.battleStatus === 'won' && currentEnemy && (
+                <>
+                  <div className={styles.resultRewards}>
+                    <div className={styles.rewardItem}>
+                      <div className={styles.rewardIcon}>🎯</div>
+                      <div className={styles.rewardText}>
+                        <div className={styles.rewardLabel}>XP GAINED</div>
+                        <div className={styles.rewardValue}>+{currentEnemy.xpReward}</div>
+                      </div>
+                    </div>
+                    <div className={styles.rewardItem}>
+                      <div className={styles.rewardIcon}>💰</div>
+                      <div className={styles.rewardText}>
+                        <div className={styles.rewardLabel}>GOLD GAINED</div>
+                        <div className={styles.rewardValue}>+{currentEnemy.goldReward}</div>
+                      </div>
+                    </div>
+                    <div className={styles.rewardItem}>
+                      <div className={styles.rewardIcon}>⭐</div>
+                      <div className={styles.rewardText}>
+                        <div className={styles.rewardLabel}>FINAL SCORE</div>
+                        <div className={styles.rewardValue}>{score}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className={styles.resultMessage}>
+                    You defeated the {currentEnemy.name}!
+                  </p>
+                </>
+              )}
+              
+              {battleStats.battleStatus === 'lost' && (
+                <p className={styles.resultMessage}>
+                  The {currentEnemy?.name} was too strong. Try again!
+                </p>
+              )}
+              
+              {battleStats.battleStatus === 'fled' && (
+                <p className={styles.resultMessage}>
+                  You retreated from battle.
+                </p>
+              )}
+              
+              <div className={styles.resultTimer}>
+                Returning to dashboard in 3 seconds...
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {/* Battle Instructions */}
-        <div className={styles.instructions}>
-          <p className={styles.instructionText}>
-            Solve math problems to damage the enemy. Wrong answers will damage you!
-            {battleStats.turn === 'player' ? ' Choose an answer and submit.' : ' Enemy is attacking...'}
-          </p>
-        </div>
-      </footer>
+      )}
     </div>
   );
 }

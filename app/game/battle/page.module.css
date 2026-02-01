@@ -1,0 +1,1025 @@
+/* Retro B&W Battle Arena Styles */
+.battleContainer {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Courier New', 'Monaco', monospace;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid #ffffff;
+  box-shadow: inset 0 0 50px rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+}
+
+/* CRT Scanline Effect */
+.battleContainer::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15) 0px,
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.battleContainer::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%,
+    rgba(255, 255, 255, 0.02) 50%
+  );
+  background-size: 100% 4px;
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: #000000;
+  gap: 20px;
+  border: 2px solid #ffffff;
+}
+
+.loadingSpinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #555;
+  border-top-color: #ffffff;
+  border-radius: 0;
+  animation: spin 1s linear infinite;
+}
+
+.loadingText {
+  color: #ffffff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  letter-spacing: 4px;
+  text-shadow: 0 0 10px #ffffff;
+  animation: blink 1s infinite;
+}
+
+/* Header */
+.header {
+  background: #111;
+  border-bottom: 2px solid #fff;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+}
+
+.header::before {
+  content: "█ █ █";
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 3px;
+  transform: translateY(-50%);
+  animation: blink 2s infinite;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.backButton {
+  background: #000;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 8px 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.backButton:hover {
+  background: #fff;
+  color: #000;
+  box-shadow: 2px 2px 0px #fff;
+  transform: translate(-1px, -1px);
+}
+
+.title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 0px #555;
+}
+
+.headerRight {
+  display: flex;
+  gap: 20px;
+}
+
+.scoreDisplay, .comboDisplay {
+  padding: 8px 15px;
+  background: #000;
+  border: 1px solid #fff;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  position: relative;
+}
+
+.scoreValue {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+.comboValue {
+  color: #fff;
+  font-weight: bold;
+  font-size: 14px;
+  font-family: 'Courier New', monospace;
+}
+
+/* Main Content */
+.mainContent {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  z-index: 5;
+}
+
+/* Battle Arena */
+.battleArena {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 30px;
+  align-items: center;
+  padding: 30px;
+  background: #111;
+  border: 2px solid #fff;
+  border-radius: 0;
+  position: relative;
+}
+
+.battleArena::before {
+  content: "┌───── BATTLE ARENA ─────┐";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #000;
+  padding: 0 20px;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* Character Cards */
+.characterCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #000;
+  border: 1px solid #fff;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.characterCard::before {
+  content: "█";
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  color: #fff;
+  font-size: 10px;
+  animation: blink 1s infinite;
+}
+
+.characterCard:hover {
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+}
+
+.characterAscii {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.asciiBox {
+  background: #111;
+  padding: 15px;
+  border: 1px solid #333;
+  border-radius: 0;
+}
+
+.asciiLine {
+  font-family: monospace;
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.characterInfo {
+  flex: 1;
+}
+
+.characterInfo h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+}
+
+.enemyType {
+  display: inline-block;
+  border: 1px solid #aaa;
+  color: #aaa;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* HP Bars */
+.hpBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.hpLabel {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  min-width: 30px;
+}
+
+.hpBarContainer {
+  flex: 1;
+  height: 10px;
+  background: #222;
+  border: 1px solid #555;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.hpBarContainer::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 3px,
+    rgba(255, 255, 255, 0.1) 3px,
+    rgba(255, 255, 255, 0.1) 6px
+  );
+}
+
+.hpBarFill {
+  height: 100%;
+  background: #fff;
+  position: relative;
+  z-index: 1;
+  transition: width 0.5s ease;
+}
+
+.hpValue {
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  min-width: 60px;
+  text-align: right;
+  font-family: 'Courier New', monospace;
+}
+
+.statusInfo, .rewardInfo {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.statusItem, .rewardItem {
+  padding: 4px 8px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 0;
+  font-size: 10px;
+  color: #aaa;
+  letter-spacing: 1px;
+}
+
+.rewardItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* VS Section */
+.vsSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vsBadge {
+  width: 50px;
+  height: 50px;
+  background: #000;
+  border: 2px solid #fff;
+  color: #fff;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  animation: pulse 2s infinite;
+}
+
+.roundInfo {
+  padding: 5px 15px;
+  background: #000;
+  border: 1px solid #fff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Problem Section */
+.problemSection {
+  background: #111;
+  border: 2px solid #fff;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.problemSection::before {
+  content: "┌───── MATH CHALLENGE ─────┐";
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: #000;
+  padding: 0 10px;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 2px;
+  z-index: 1;
+}
+
+.problemHeader {
+  background: #000;
+  border-bottom: 1px solid #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.problemHeader h2 {
+  margin: 0;
+  font-size: 14px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: normal;
+}
+
+.timer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timerLabel {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.timerValue {
+  background: #000;
+  border: 1px solid #fff;
+  padding: 5px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #fff;
+  min-width: 50px;
+  text-align: center;
+  font-family: 'Courier New', monospace;
+}
+
+.timerValue.warning {
+  color: #fff;
+  animation: blink 0.5s infinite;
+  background: #333;
+}
+
+/* Problem Box */
+.problemBox {
+  padding: 20px;
+}
+
+.problemDisplay {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  background: #000;
+  border: 1px solid #333;
+}
+
+.problemText {
+  font-size: 24px;
+  font-weight: bold;
+  color: #fff;
+  font-family: 'Monaco', monospace;
+  letter-spacing: 1px;
+}
+
+.difficultyBadge {
+  background: #000;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Answer Section */
+.answerSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.inputLabel {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  min-width: 100px;
+}
+
+.answerInput {
+  flex: 1;
+  background: #000;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 12px 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 16px;
+  border-radius: 0;
+  transition: all 0.3s ease;
+  letter-spacing: 1px;
+}
+
+.answerInput:focus {
+  outline: none;
+  border-color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  background: #111;
+}
+
+.answerInput:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: #555;
+}
+
+.submitButton {
+  background: #000;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 12px 25px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: bold;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #fff;
+  color: #000;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0px #fff;
+}
+
+.submitButton:active:not(:disabled) {
+  transform: translateY(0px);
+  box-shadow: none;
+}
+
+.submitButton:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #555;
+  color: #555;
+}
+
+.quickChoices {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.quickLabel {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.quickChoice {
+  background: #000;
+  border: 1px solid #aaa;
+  color: #aaa;
+  padding: 8px 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 1px;
+}
+
+.quickChoice:hover:not(:disabled) {
+  background: #111;
+  border-color: #fff;
+  color: #fff;
+}
+
+.quickChoice:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Feedback */
+.feedback {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid;
+  font-weight: bold;
+  text-align: center;
+  animation: slideIn 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.feedback.success {
+  background: #000;
+  border-color: #fff;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.feedback.error {
+  background: #000;
+  border-color: #888;
+  color: #888;
+}
+
+.feedback.warning {
+  background: #000;
+  border-color: #aaa;
+  color: #aaa;
+}
+
+.feedback.info {
+  background: #000;
+  border-color: #fff;
+  color: #fff;
+}
+
+/* Battle Log */
+.logSection {
+  background: #111;
+  border: 2px solid #fff;
+  border-radius: 0;
+  overflow: hidden;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.logSection::before {
+  content: "┌───── BATTLE LOG ─────┐";
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: #000;
+  padding: 0 10px;
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 2px;
+  z-index: 1;
+}
+
+.logHeader {
+  background: #000;
+  border-bottom: 1px solid #fff;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logHeader h3 {
+  margin: 0;
+  font-size: 13px;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  font-weight: normal;
+}
+
+.fleeButton {
+  background: #000;
+  border: 1px solid #888;
+  color: #888;
+  padding: 8px 15px;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.fleeButton:hover:not(:disabled) {
+  background: #333;
+  border-color: #fff;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.fleeButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.logContent {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 200px;
+  background: #000;
+}
+
+.logEntry {
+  padding: 8px 12px;
+  background: #111;
+  border: 1px solid #333;
+  font-size: 11px;
+  color: #aaa;
+  border-left: 3px solid #fff;
+  animation: fadeIn 0.3s ease;
+  position: relative;
+  padding-left: 20px;
+}
+
+.logEntry::before {
+  content: ">";
+  position: absolute;
+  left: 8px;
+  color: #fff;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Result Overlay */
+.resultOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.resultModal {
+  background: #000;
+  border: 4px double #fff;
+  padding: 40px;
+  max-width: 500px;
+  width: 90%;
+  text-align: center;
+  position: relative;
+  animation: zoomIn 0.5s ease;
+}
+
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.resultModal::before {
+  content: "╔═══════════════════════════════════════════╗";
+  position: absolute;
+  top: -2px;
+  left: 20px;
+  right: 20px;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+.resultModal::after {
+  content: "╚═══════════════════════════════════════════╝";
+  position: absolute;
+  bottom: -2px;
+  left: 20px;
+  right: 20px;
+  color: #fff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  pointer-events: none;
+}
+
+.resultModal.won {
+  border-color: #fff;
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+}
+
+.resultModal.lost {
+  border-color: #888;
+  box-shadow: 0 0 50px rgba(136, 136, 136, 0.3);
+}
+
+.resultModal.fled {
+  border-color: #aaa;
+  box-shadow: 0 0 50px rgba(170, 170, 170, 0.3);
+}
+
+.resultTitle {
+  margin: 0 0 20px 0;
+  font-size: 32px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #fff;
+}
+
+.resultModal.lost .resultTitle {
+  color: #888;
+}
+
+.resultModal.fled .resultTitle {
+  color: #aaa;
+}
+
+.resultContent {
+  margin: 30px 0;
+}
+
+.resultRewards {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.rewardItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 15px;
+  background: #111;
+  border: 1px solid #333;
+  min-width: 100px;
+}
+
+.rewardIcon {
+  font-size: 24px;
+  color: #fff;
+}
+
+.rewardText {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.rewardLabel {
+  color: #888;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.rewardValue {
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  font-family: 'Courier New', monospace;
+}
+
+.resultMessage {
+  color: #aaa;
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  letter-spacing: 1px;
+}
+
+.resultTimer {
+  color: #888;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-top: 1px solid #333;
+  padding-top: 15px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  background: #000;
+}
+
+::-webkit-scrollbar-track {
+  background: #111;
+  border: 1px solid #333;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border: 1px solid #555;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .battleArena {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+  }
+  
+  .vsSection {
+    order: 2;
+  }
+  
+  .playerSection, .enemySection {
+    order: 1;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  
+  .headerLeft, .headerRight {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .inputGroup {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .quickChoices {
+    flex-wrap: wrap;
+  }
+  
+  .characterCard {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .resultRewards {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .mainContent {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header, .footer {
+    padding: 15px;
+  }
+  
+  .title {
+    font-size: 16px;
+  }
+  
+  .problemText {
+    font-size: 18px;
+  }
+  
+  .resultTitle {
+    font-size: 24px;
+  }
+}
+
+/* Glitch Effect for Battle Intensity */
+@keyframes glitch {
+  0% { transform: translate(0); }
+  20% { transform: translate(-2px, 2px); }
+  40% { transform: translate(-2px, -2px); }
+  60% { transform: translate(2px, 2px); }
+  80% { transform: translate(2px, -2px); }
+  100% { transform: translate(0); }
+}
+
+.glitch {
+  animation: glitch 0.3s linear infinite;
+}
