@@ -334,6 +334,8 @@
   display: flex;
   gap: 15px;
   margin-top: 10px;
+  opacity: 35%;
+  color: #f7f1f1;
 }
 
 .statusItem, .rewardItem {
@@ -341,7 +343,7 @@
   border: 1px solid #333;
   border-radius: 0;
   font-size: 10px;
-  color: #aaa;
+  color: #ffffff;
   letter-spacing: 1px;
 }
 
@@ -716,7 +718,6 @@ opacity: 50%;
 .logEntry {
   padding: 8px 12px;
   background: #e6e4e4;
-  border: 1px solid #333;
   font-size: 11px;
   color: #0e0e0e;
   border-left: 3px solid #fff;
@@ -744,7 +745,6 @@ opacity: 50%;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -753,7 +753,7 @@ opacity: 50%;
 }
 
 .resultModal {
-  background: #000;
+  opacity: 60%;
   border: 4px double #fff;
   padding: 40px;
   max-width: 500px;
@@ -769,7 +769,6 @@ opacity: 50%;
 }
 
 .resultModal::before {
-  content: "╔═══════════════════════════════════════════╗";
   position: absolute;
   top: -2px;
   left: 20px;
@@ -794,12 +793,12 @@ opacity: 50%;
 
 .resultModal.won {
   border-color: #fff;
-  box-shadow: 0 0 50px rgba(255, 255, 255, 0.3);
+  background-color: chartreuse;
 }
 
 .resultModal.lost {
   border-color: #888;
-  box-shadow: 0 0 50px rgba(136, 136, 136, 0.3);
+  background-color: #d60d0d;
 }
 
 .resultModal.fled {
@@ -991,4 +990,92 @@ opacity: 50%;
 
 .glitch {
   animation: glitch 0.3s linear infinite;
+}
+.imageBox {
+  width: 100%;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enemyImage {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.loadingImage {
+  color: #aaa;
+  font-size: 14px;
+}
+@keyframes slowSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wander {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(6px, -4px); }
+  50%  { transform: translate(-6px, 4px); }
+  75%  { transform: translate(4px, 6px); }
+  100% { transform: translate(0, 0); }
+}
+
+.enemyImageAnimated {
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  image-rendering: pixelated;
+
+  animation:
+    slowSpin 12s linear infinite,
+    wander 6s ease-in-out infinite;
+}
+
+ /* this under here is for profile css styling */
+ .characterImage {
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroImage {
+  width: 106px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+.heroFallback {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #222;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #00b3ff;
+
+
+}
+
+/* this is for damage flash rith her */
+.heroImage.hit {
+  animation: hitFlash 0.3s;
+}
+
+@keyframes hitFlash {
+  0% { filter: brightness(1); }
+  50% { filter: brightness(2) saturate(2); }
+  100% { filter: brightness(1); }
 }

@@ -76,12 +76,11 @@ export default function ChatPage() {
         padding: 16,
       }}
     >
-      <h1 style={{ marginBottom: 12 }}>USER CHAT</h1>
+      <h1 style={{ marginBottom: "12", textAlign: "center" }}> PLAYER CHAT</h1>
 
       <div
         style={{
           flex: 1,
-          border: "4px solid #3a3a3a",
           padding: 12,
           overflowY: "auto",
           background: "#0a0a0a",
@@ -106,7 +105,6 @@ export default function ChatPage() {
           style={{
             flex: 1,
             background: "#000",
-            border: "3px solid #3a3a3a",
             color: "#00ff9c",
             padding: 10,
             fontFamily: '"Press Start 2P", monospace',
@@ -118,7 +116,7 @@ export default function ChatPage() {
           style={{
             border: "3px solid #3a3a3a",
             background: "#111",
-            color: "#00ff9c",
+            color: "#ffff",
             padding: "10px 16px",
             fontFamily: '"Press Start 2P", monospace',
             cursor: "pointer",

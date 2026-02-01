@@ -16,6 +16,7 @@ interface GameMetadata {
   xp: number;
   gold: number;
   battleLog: BattleLogEntry[];
+  unlockedMonsters: number[];
 }
 
 interface BattleLogEntry {
@@ -37,8 +38,15 @@ interface Monster {
   xpReward: number;
   goldReward: number;
   unlocked: boolean;
-  ascii: string[];
+  imageSrc: string;
 }
+
+const DIFFICULTY_UNLOCK_MAP: Record<GameMetadata["difficulty"], number | null> =
+  {
+    simple: 2, // upgrading from simple unlocks Fraction Fiend
+    precalc: 3, // upgrading from precalc unlocks Derivative Dragon
+    calculus: null, // nothing auto unlocks after this
+  };
 
 const MONSTERS: Monster[] = [
   {
@@ -48,17 +56,10 @@ const MONSTERS: Monster[] = [
     difficulty: "simple",
     description: "Basic arithmetic operations",
     level: 1,
-    xpReward: 10,
+    xpReward: 20,
     goldReward: 5,
-    unlocked: true,
-    ascii: [
-      "  ▄▄▄▄▄  ",
-      " ███████ ",
-      "██  ██  ██",
-      "███    ███",
-      " ███████ ",
-      "  ▀▀▀▀▀  ",
-    ],
+    unlocked: false,
+    imageSrc: "/precalcmonster.png",
   },
   {
     id: 2,
@@ -67,96 +68,34 @@ const MONSTERS: Monster[] = [
     difficulty: "simple",
     description: "Fractions and basic algebra",
     level: 2,
-    xpReward: 15,
+    xpReward: 50,
     goldReward: 8,
-    unlocked: true,
-    ascii: [
-      "   ███   ",
-      "  █████  ",
-      " ██▀▀▀██ ",
-      "██▄▄▄▄▄██",
-      " ███████ ",
-      "  ▀▀▀▀▀  ",
-    ],
+    unlocked: false,
+    imageSrc: "/fraction-friend.png",
   },
   {
     id: 3,
-    name: "Trigonometry Titan",
-    type: "algebra",
-    difficulty: "precalc",
-    description: "Trigonometric functions",
-    level: 3,
-    xpReward: 25,
-    goldReward: 15,
-    unlocked: false,
-    ascii: [
-      "  ▄▄▄▄▄▄  ",
-      " ████████ ",
-      "██░░░░░░██",
-      "██░████░██",
-      "██░░░░░░██",
-      " ████████ ",
-      "  ▀▀▀▀▀▀  ",
-    ],
-  },
-  {
-    id: 4,
-    name: "Logarithmic Lich",
-    type: "algebra",
-    difficulty: "precalc",
-    description: "Logarithms and exponents",
-    level: 4,
-    xpReward: 30,
-    goldReward: 20,
-    unlocked: false,
-    ascii: [
-      "   ▄▄▄   ",
-      "  █████  ",
-      " ██▀▀▀██ ",
-      "███▄▄▄███",
-      " ███████ ",
-      "  ▀▀█▀▀  ",
-    ],
-  },
-  {
-    id: 5,
     name: "Derivative Dragon",
     type: "calculus",
     difficulty: "calculus",
     description: "Derivatives and rates of change",
-    level: 5,
-    xpReward: 50,
+    level: 3,
+    xpReward: 100,
     goldReward: 30,
     unlocked: false,
-    ascii: [
-      "    ▄▄▄▄▄    ",
-      "   ███████   ",
-      "  ██▀▀▀▀▀██  ",
-      " ██▄▄▄▄▄▄▄██ ",
-      "██▀▀▀▀▀▀▀▀▀██",
-      " ███████████ ",
-      "  ▀▀▀▀▀▀▀▀▀  ",
-    ],
+    imageSrc: "/derivative-dragon.png",
   },
   {
-    id: 6,
+    id: 4,
     name: "Integral Behemoth",
     type: "calculus",
     difficulty: "calculus",
     description: "Integration and area under curves",
-    level: 6,
-    xpReward: 60,
+    level: 4,
+    xpReward: 200,
     goldReward: 35,
     unlocked: false,
-    ascii: [
-      "  ▄▄▄▄▄▄▄  ",
-      " █████████ ",
-      "██▄▄▄▄▄▄▄██",
-      "██▀▀▀▀▀▀▀██",
-      "██▄▄▄▄▄▄▄██",
-      " █████████ ",
-      "  ▀▀▀▀▀▀▀  ",
-    ],
+    imageSrc: "/integral-behemoth.png",
   },
 ];
 
@@ -174,8 +113,10 @@ export default function GameDashboard() {
     xp: 0,
     gold: 0,
     battleLog: [],
+    unlockedMonsters: [1],
   });
 
+  const [monsters, setMonsters] = useState<Monster[]>(MONSTERS);
   const [isUpdatingMetadata, setIsUpdatingMetadata] = useState(false);
   const [selectedMonster, setSelectedMonster] = useState<Monster | null>(null);
   const [showTutorial, setShowTutorial] = useState(true);
@@ -184,28 +125,16 @@ export default function GameDashboard() {
     if (!user) return;
 
     try {
-      const metadata = user.publicMetadata;
-      const currentDifficulty =
-        metadata.difficulty as GameMetadata["difficulty"];
+      const metadata = user.unsafeMetadata as Partial<GameMetadata>;
 
-      if (!currentDifficulty) {
+      // Check if user has existing data
+      const hasExistingData = typeof metadata.xp === "number";
+      if (!hasExistingData) {
         setIsUpdatingMetadata(true);
 
-        await user.update({
-          unsafeMetadata: {
-            difficulty: "simple",
-            hp: 100,
-            maxHp: 100,
-            wins: 0,
-            losses: 0,
-            level: 1,
-            xp: 0,
-            gold: 0,
-            battleLog: [],
-          },
-        });
+        const unlockedIds = [1];
 
-        setGameData({
+        const initialData: GameMetadata = {
           difficulty: "simple",
           hp: 100,
           maxHp: 100,
@@ -215,29 +144,55 @@ export default function GameDashboard() {
           xp: 0,
           gold: 0,
           battleLog: [],
-        });
-      } else {
-        setGameData({
-          difficulty: currentDifficulty || "simple",
-          hp: typeof metadata.hp === "number" ? metadata.hp : 100,
-          maxHp: 100,
-          wins: typeof metadata.wins === "number" ? metadata.wins : 0,
-          losses: typeof metadata.losses === "number" ? metadata.losses : 0,
-          level: typeof metadata.level === "number" ? metadata.level : 1,
-          xp: typeof metadata.xp === "number" ? metadata.xp : 0,
-          gold: typeof metadata.gold === "number" ? metadata.gold : 0,
-          battleLog: Array.isArray(metadata.battleLog)
-            ? metadata.battleLog.slice(-5)
-            : [],
+          unlockedMonsters: unlockedIds,
+        };
+
+        await user.update({
+          unsafeMetadata: initialData as unknown as Record<string, unknown>,
         });
 
-        // Update monster unlocks based on level
-        const playerLevel =
-          typeof metadata.level === "number" ? metadata.level : 1;
-        MONSTERS.forEach((monster) => {
-          monster.unlocked = monster.level <= playerLevel;
-        });
+        setGameData(initialData);
+
+        setMonsters(
+          MONSTERS.map((monster) => ({
+            ...monster,
+            unlocked: unlockedIds.includes(monster.id),
+          })),
+        );
+
+        return;
       }
+
+      // Load existing data
+      const unlockedIds = Array.isArray(metadata.unlockedMonsters)
+        ? Array.from(new Set([1, ...metadata.unlockedMonsters]))
+        : [1];
+      // Default to level 1 if not set
+
+      const loaded: GameMetadata = {
+        difficulty:
+          (metadata.difficulty as GameMetadata["difficulty"]) || "simple",
+        hp: typeof metadata.hp === "number" ? metadata.hp : 100,
+        maxHp: typeof metadata.maxHp === "number" ? metadata.maxHp : 100,
+        wins: typeof metadata.wins === "number" ? metadata.wins : 0,
+        losses: typeof metadata.losses === "number" ? metadata.losses : 0,
+        level: typeof metadata.level === "number" ? metadata.level : 1,
+        xp: typeof metadata.xp === "number" ? metadata.xp : 0,
+        gold: typeof metadata.gold === "number" ? metadata.gold : 0,
+        battleLog: Array.isArray(metadata.battleLog)
+          ? metadata.battleLog.slice(-5)
+          : [],
+        unlockedMonsters: unlockedIds,
+      };
+
+      setGameData(loaded);
+
+      // Apply unlocks to monsters
+      const updatedMonsters = MONSTERS.map((monster) => ({
+        ...monster,
+        unlocked: unlockedIds.includes(monster.id),
+      }));
+      setMonsters(updatedMonsters);
     } catch (error) {
       console.error("Error initializing game data:", error);
     } finally {
@@ -254,7 +209,15 @@ export default function GameDashboard() {
 
   const handleMonsterSelect = (monster: Monster) => {
     if (!monster.unlocked) {
-      alert(`Unlock this monster at level ${monster.level}`);
+      // Show unlock option
+      const xpCost = calculateUnlockCost(monster.level);
+      const confirmUnlock = window.confirm(
+        `Unlock ${monster.name} for ${xpCost} XP?\n\nLevel ${monster.level} monster - Rewards: ${monster.xpReward} XP & ${monster.goldReward} Gold`,
+      );
+
+      if (confirmUnlock) {
+        handleUnlockMonster(monster);
+      }
       return;
     }
     setSelectedMonster(monster);
@@ -264,11 +227,94 @@ export default function GameDashboard() {
     if (!selectedMonster) return;
     router.push(`/game/battle?monster=${selectedMonster.id}`);
   };
+  const calculateXPToNextLevel = (currentLevel: number) => {
+    const thresholds: Record<number, number> = {
+      1: 100,
+      2: 300,
+      3: 600,
+      4: 1000,
+    };
 
-  const calculateXPToNextLevel = (currentLevel: number, currentXP: number) => {
-    const baseXP = 100;
-    const multiplier = 1.5;
-    return Math.floor(baseXP * Math.pow(multiplier, currentLevel - 1));
+    return thresholds[currentLevel] ?? currentLevel * 500;
+  };
+
+  const getXPProgress = () => {
+    const previousThreshold =
+      gameData.level > 1 ? calculateXPToNextLevel(gameData.level - 1) : 0;
+    const nextThreshold = calculateXPToNextLevel(gameData.level);
+
+    const xpInCurrentLevel = gameData.xp - previousThreshold;
+    const xpNeededForNextLevel = nextThreshold - previousThreshold;
+
+    return {
+      percentage: (xpInCurrentLevel / xpNeededForNextLevel) * 100,
+      xpInCurrentLevel,
+      xpNeededForNextLevel,
+    };
+  };
+  const calculateUnlockCost = (monsterLevel: number) => {
+    const costs: Record<number, number> = {
+      2: 200,
+      3: 300,
+      4: 1000,
+    };
+    return costs[monsterLevel] ?? monsterLevel * 250;
+  };
+
+  const handleUnlockMonster = async (monster: Monster) => {
+    if (!user) return;
+
+    if (monster.unlocked) {
+      alert("Monster already unlocked!");
+      return;
+    }
+
+    const xpCost = calculateUnlockCost(monster.level);
+
+    if (gameData.xp < xpCost) {
+      alert(
+        `Need ${xpCost} XP to unlock ${monster.name}. You have ${gameData.xp} XP.\n\nFarm the Arithmetic Golem to earn more XP!`,
+      );
+      return;
+    }
+
+    try {
+      setIsUpdatingMetadata(true);
+
+      const metadata = user.unsafeMetadata as any;
+      const newXP = gameData.xp - xpCost;
+      const newUnlockedMonsters = [...gameData.unlockedMonsters, monster.id];
+
+      // Update user metadata
+      await user.update({
+        unsafeMetadata: {
+          ...metadata,
+          xp: newXP,
+          unlockedMonsters: newUnlockedMonsters,
+        },
+      });
+
+      // Update local state
+      setGameData((prev) => ({
+        ...prev,
+        xp: newXP,
+        unlockedMonsters: newUnlockedMonsters,
+      }));
+
+      // Update monsters state
+      setMonsters((prev) =>
+        prev.map((m) => (m.id === monster.id ? { ...m, unlocked: true } : m)),
+      );
+
+      alert(
+        ` ${monster.name} unlocked! -${xpCost} XP\n\nYou can now battle this monster for better rewards!`,
+      );
+    } catch (error) {
+      console.error("Error unlocking monster:", error);
+      alert("Failed to unlock monster. Please try again.");
+    } finally {
+      setIsUpdatingMetadata(false);
+    }
   };
 
   const handleHeal = async () => {
@@ -281,9 +327,11 @@ export default function GameDashboard() {
 
     try {
       setIsUpdatingMetadata(true);
+      const metadata = user.unsafeMetadata as any;
+
       await user.update({
         unsafeMetadata: {
-          ...user.publicMetadata,
+          ...metadata,
           hp: 100,
           gold: gameData.gold - 10,
         },
@@ -294,6 +342,7 @@ export default function GameDashboard() {
         hp: 100,
         gold: prev.gold - 10,
       }));
+
       alert("Healed to full HP! -10 gold");
     } catch (error) {
       console.error("Error healing:", error);
@@ -305,42 +354,66 @@ export default function GameDashboard() {
   const handleUpgradeDifficulty = async () => {
     if (!user) return;
 
-    const difficultyUpgradeMap = {
-      simple: "precalc",
-      precalc: "calculus",
-      calculus: "calculus",
-    } as const;
+    const cycle = ["simple", "precalc", "calculus"] as const;
+    const currentIndex = cycle.indexOf(gameData.difficulty);
+    const nextDifficulty = cycle[(currentIndex + 1) % cycle.length];
 
-    const nextDifficulty = difficultyUpgradeMap[gameData.difficulty];
-
-    if (nextDifficulty === gameData.difficulty) {
-      alert("Already at maximum difficulty!");
-      return;
-    }
-
-    if (gameData.level < 3 && nextDifficulty === "precalc") {
-      alert("Reach level 3 to unlock Pre-Calculus!");
-      return;
-    }
-
-    if (gameData.level < 5 && nextDifficulty === "calculus") {
-      alert("Reach level 5 to unlock Calculus!");
+    const difficultyCost = currentIndex * 100;
+    if (gameData.xp < difficultyCost) {
+      alert(
+        `Need ${difficultyCost} XP to upgrade to ${nextDifficulty.toUpperCase()} difficulty!`,
+      );
       return;
     }
 
     try {
       setIsUpdatingMetadata(true);
+
+      const metadata = user.unsafeMetadata as any;
+
+      const monsterToUnlock = DIFFICULTY_UNLOCK_MAP[gameData.difficulty];
+
+      const newUnlockedMonsters =
+        monsterToUnlock && !gameData.unlockedMonsters.includes(monsterToUnlock)
+          ? [...gameData.unlockedMonsters, monsterToUnlock]
+          : gameData.unlockedMonsters;
+
       await user.update({
         unsafeMetadata: {
-          ...user.publicMetadata,
+          ...metadata,
           difficulty: nextDifficulty,
+          xp: gameData.xp - difficultyCost,
+          unlockedMonsters: newUnlockedMonsters,
         },
       });
 
-      setGameData((prev) => ({ ...prev, difficulty: nextDifficulty }));
-      alert(`Difficulty upgraded to ${nextDifficulty.toUpperCase()}!`);
+      setGameData((prev) => ({
+        ...prev,
+        difficulty: nextDifficulty,
+        xp: prev.xp - difficultyCost,
+        unlockedMonsters: newUnlockedMonsters,
+      }));
+
+      setMonsters((prev) =>
+        prev.map((m) =>
+          newUnlockedMonsters.includes(m.id) ? { ...m, unlocked: true } : m,
+        ),
+      );
+
+      if (monsterToUnlock) {
+        const monsterName = MONSTERS.find(
+          (m) => m.id === monsterToUnlock,
+        )?.name;
+
+        alert(
+          `Difficulty upgraded to ${nextDifficulty.toUpperCase()}!\n\n${monsterName} unlocked!`,
+        );
+      } else {
+        alert(`Difficulty upgraded to ${nextDifficulty.toUpperCase()}!`);
+      }
     } catch (error) {
       console.error("Error upgrading difficulty:", error);
+      alert("Failed to upgrade difficulty. Please try again.");
     } finally {
       setIsUpdatingMetadata(false);
     }
@@ -359,10 +432,10 @@ export default function GameDashboard() {
     }
   };
 
-  const getProgressPercentage = () => {
-    const xpNeeded = calculateXPToNextLevel(gameData.level, gameData.xp);
-    const currentProgress = gameData.xp % 100;
-    return Math.min(100, (currentProgress / xpNeeded) * 100);
+  const getDifficultyXPRequirement = () => {
+    const cycle = ["simple", "precalc", "calculus"] as const;
+    const currentIndex = cycle.indexOf(gameData.difficulty);
+    return currentIndex * 100; // 0 for simple, 200 for precalc, 400 for calculus
   };
 
   if (!isLoaded || isUpdatingMetadata) {
@@ -378,7 +451,8 @@ export default function GameDashboard() {
     return <NotUser />;
   }
 
-  const xpNeeded = calculateXPToNextLevel(gameData.level, gameData.xp);
+  const xpProgress = getXPProgress();
+  const xpNeeded = calculateXPToNextLevel(gameData.level);
 
   return (
     <div className={styles.dashboard}>
@@ -386,7 +460,6 @@ export default function GameDashboard() {
       <header className={styles.header}>
         <div className={styles.titleSection}>
           <h1 className={styles.title}>Retro Shift </h1>
-          <p className={styles.subtitle}>A Retro Dashboard Interface</p>
         </div>
         <div className={styles.userInfo}>
           <div className={styles.userAvatar}>
@@ -428,8 +501,21 @@ export default function GameDashboard() {
                 <div className={styles.statItem}>
                   <div className={styles.statLabel}>LEVEL</div>
                   <div className={styles.statValueLarge}>{gameData.level}</div>
-                  <div className={styles.statSub}>
-                    XP: {gameData.xp}/{xpNeeded}
+                  <div className={styles.statSub}>XP: {gameData.xp}</div>
+                  <div className={styles.xpProgressContainer}>
+                    <div className={styles.xpProgressBar}>
+                      <div
+                        className={styles.xpProgressFill}
+                        style={{
+                          width: `${Math.min(100, xpProgress.percentage)}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <div className={styles.xpProgressText}>
+                      {xpProgress.xpInCurrentLevel}/
+                      {xpProgress.xpNeededForNextLevel} XP to level{" "}
+                      {gameData.level + 1}
+                    </div>
                   </div>
                 </div>
 
@@ -480,15 +566,24 @@ export default function GameDashboard() {
                     {gameData.difficulty.toUpperCase()}
                   </span>
                 </div>
+                <div className={styles.settingItem}>
+                  <span className={styles.settingLabel}>UPGRADE COST:</span>
+                  <span className={styles.settingValue}>
+                    {getDifficultyXPRequirement()} XP
+                  </span>
+                </div>
                 <button
                   className={styles.actionButton}
                   onClick={handleUpgradeDifficulty}
-                  disabled={
-                    gameData.level < (gameData.difficulty === "simple" ? 3 : 5)
-                  }
+                  disabled={gameData.xp < getDifficultyXPRequirement()}
                 >
                   UPGRADE DIFFICULTY
                 </button>
+                {gameData.xp < getDifficultyXPRequirement() && (
+                  <div className={styles.requirementHint}>
+                    Need {getDifficultyXPRequirement() - gameData.xp} more XP
+                  </div>
+                )}
               </div>
 
               <div className={styles.actionsSection}>
@@ -497,6 +592,7 @@ export default function GameDashboard() {
                   <button
                     className={`${styles.actionButton} ${styles.primary}`}
                     onClick={handleHeal}
+                    disabled={gameData.gold < 10}
                   >
                     HEAL (-10 GOLD)
                   </button>
@@ -564,50 +660,89 @@ export default function GameDashboard() {
             </div>
             <div className={styles.cardContent}>
               <div className={styles.monsterGrid}>
-                {MONSTERS.map((monster) => (
-                  <div
-                    key={monster.id}
-                    className={`${styles.monsterCard} ${
-                      selectedMonster?.id === monster.id ? styles.selected : ""
-                    } ${!monster.unlocked ? styles.locked : ""}`}
-                    onClick={() => handleMonsterSelect(monster)}
-                  >
-                    {!monster.unlocked && (
-                      <div className={styles.lockOverlay}>
-                        <span>LEVEL {monster.level}+</span>
-                      </div>
-                    )}
-                    <div className={styles.monsterAscii}>
-                      {monster.ascii.map((line, i) => (
-                        <div key={i} className={styles.asciiLine}>
-                          {line}
+                {monsters.map((monster) => {
+                  const isUnlocked = monster.unlocked;
+                  const unlockCost = calculateUnlockCost(monster.level);
+
+                  return (
+                    <div
+                      key={monster.id}
+                      className={`${styles.monsterCard} ${
+                        selectedMonster?.id === monster.id
+                          ? styles.selected
+                          : ""
+                      } ${!isUnlocked ? styles.locked : ""}`}
+                      onClick={() => handleMonsterSelect(monster)}
+                    >
+                      {!isUnlocked && (
+                        <div className={styles.lockOverlay}>
+                          <span className={styles.lockLevel}>
+                            LEVEL {monster.level}+
+                          </span>
+                          <div className={styles.unlockInfo}>
+                            <div className={styles.unlockRewards}>
+                              Rewards: {monster.xpReward} XP &{" "}
+                              {monster.goldReward} Gold
+                            </div>
+                            <div className={styles.unlockHint}>
+                              Click to unlock with XP
+                            </div>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className={styles.monsterInfo}>
-                      <h3>{monster.name}</h3>
-                      <div className={styles.monsterTags}>
-                        <span className={styles.monsterType}>
-                          {monster.type.toUpperCase()}
-                        </span>
-                        <span className={styles.monsterLevel}>
-                          LVL {monster.level}
-                        </span>
+                      )}
+                      <div className={styles.monsterImage}>
+                        <img
+                          src={monster.imageSrc}
+                          alt={monster.name}
+                          className={styles.image}
+                          draggable={false}
+                        />
                       </div>
-                      <p className={styles.monsterDesc}>
-                        {monster.description}
-                      </p>
-                      <div className={styles.monsterRewards}>
-                        <span className={styles.reward}>
-                          🎯 {monster.xpReward} XP
-                        </span>
-                        <span className={styles.reward}>
-                          💰 {monster.goldReward} Gold
-                        </span>
+
+                      <div className={styles.monsterInfo}>
+                        <h3>{monster.name}</h3>
+                        <div className={styles.monsterTags}>
+                          <span className={styles.monsterType}>
+                            {monster.type.toUpperCase()}
+                          </span>
+                          <span className={styles.monsterLevel}>
+                            LVL {monster.level}
+                          </span>
+                          {!isUnlocked && (
+                            <span className={styles.monsterLocked}>
+                              🔒 LOCKED
+                            </span>
+                          )}
+                        </div>
+                        <p className={styles.monsterDesc}>
+                          {monster.description}
+                        </p>
+                        <div className={styles.monsterRewards}>
+                          <span className={styles.reward}>
+                            {monster.xpReward} XP
+                          </span>
+                          <span className={styles.reward}>
+                            {monster.goldReward} Gold
+                          </span>
+                        </div>
+                        {!isUnlocked && (
+                          <div className={styles.unlockButtonContainer}>
+                            <button
+                              className={styles.unlockButton}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnlockMonster(monster);
+                              }}
+                              disabled={gameData.xp < unlockCost}
+                            >
+                              🔓 Unlock ({unlockCost} XP)
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {selectedMonster && (
@@ -627,6 +762,26 @@ export default function GameDashboard() {
                     {selectedMonster.xpReward} XP & {selectedMonster.goldReward}{" "}
                     Gold.
                   </p>
+                  {!selectedMonster.unlocked && (
+                    <div className={styles.unlockPrompt}>
+                      <p>
+                        <strong>This monster is locked!</strong> You need{" "}
+                        {calculateUnlockCost(selectedMonster.level)} XP to
+                        unlock it.
+                      </p>
+                      <button
+                        className={`${styles.actionButton} ${styles.primary}`}
+                        onClick={() => handleUnlockMonster(selectedMonster)}
+                        disabled={
+                          gameData.xp <
+                          calculateUnlockCost(selectedMonster.level)
+                        }
+                      >
+                        🔓 UNLOCK FOR{" "}
+                        {calculateUnlockCost(selectedMonster.level)} XP
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -643,27 +798,42 @@ export default function GameDashboard() {
                   <div className={styles.tutorialStep}>
                     <div className={styles.stepNumber}>1</div>
                     <div className={styles.stepContent}>
-                      <strong>Select a Math Monster</strong> from the grid above
+                      <strong>Start with Arithmetic Golem</strong> - Farm XP by
+                      defeating level 1 enemies
                     </div>
                   </div>
                   <div className={styles.tutorialStep}>
                     <div className={styles.stepNumber}>2</div>
                     <div className={styles.stepContent}>
-                      <strong>Solve math problems</strong> to damage the monster
+                      <strong>Save XP to unlock stronger monsters</strong> -
+                      Click locked monsters to unlock them
                     </div>
                   </div>
                   <div className={styles.tutorialStep}>
                     <div className={styles.stepNumber}>3</div>
                     <div className={styles.stepContent}>
-                      <strong>Win battles</strong> to earn XP and Gold
+                      <strong>Progress through difficulties</strong> - Upgrade
+                      difficulty for harder problems
                     </div>
                   </div>
                   <div className={styles.tutorialStep}>
                     <div className={styles.stepNumber}>4</div>
                     <div className={styles.stepContent}>
-                      <strong>Level up</strong> to unlock more difficult
-                      monsters
+                      <strong>Complete the game</strong> - Defeat all 4 monsters
+                      to win!
                     </div>
+                  </div>
+                  <div className={styles.progressionGuide}>
+                    <h4>XP Progression Guide:</h4>
+                    <ul>
+                      <li>Level 1 → 2: 100 XP (10 battles)</li>
+                      <li>Level 2 → 3: 300 XP (20 battles)</li>
+                      <li>Level 3 → 4: 600 XP (12 battles)</li>
+                    </ul>
+                    <p className={styles.tip}>
+                      💡 <strong>Tip:</strong> Farm the Arithmetic Golem (10 XP
+                      each) to build your XP before unlocking harder monsters.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -690,6 +860,10 @@ export default function GameDashboard() {
           <div className={styles.statusIndicator}>
             <div className={styles.statusDot}></div>
             <span>SERVER: ONLINE</span>
+            <span className={styles.progressionStatus}>
+              • PROGRESSION: {gameData.unlockedMonsters.length}/4 MONSTERS
+              UNLOCKED
+            </span>
           </div>
         </div>
       </footer>

@@ -35,7 +35,7 @@ interface Enemy {
   maxHp: number;
   xpReward: number;
   goldReward: number;
-  ascii: string[];
+  imageSrc: string;
 }
 
 const ENEMIES: Enemy[] = [
@@ -45,18 +45,11 @@ const ENEMIES: Enemy[] = [
     type: "arithmetic",
     difficulty: "simple",
     description: "Basic arithmetic operations",
-    damage: 10,
-    maxHp: 80,
-    xpReward: 10,
-    goldReward: 5,
-    ascii: [
-      "  ▄▄▄▄▄  ",
-      " ███████ ",
-      "██  ██  ██",
-      "███    ███",
-      " ███████ ",
-      "  ▀▀▀▀▀  ",
-    ],
+    damage: 8, // VERY LOW
+    maxHp: 100, // VERY LOW
+    xpReward: 50,
+    goldReward: 20,
+    imageSrc: "/precalcmonster.png",
   },
   {
     id: 2,
@@ -64,97 +57,35 @@ const ENEMIES: Enemy[] = [
     type: "algebra",
     difficulty: "simple",
     description: "Fractions and basic algebra",
-    damage: 12,
-    maxHp: 70,
-    xpReward: 15,
-    goldReward: 8,
-    ascii: [
-      "   ███   ",
-      "  █████  ",
-      " ██▀▀▀██ ",
-      "██▄▄▄▄▄██",
-      " ███████ ",
-      "  ▀▀▀▀▀  ",
-    ],
+    damage: 10,
+    maxHp: 100,
+    xpReward: 100,
+    goldReward: 30,
+    imageSrc: "/fraction-friend.png",
   },
   {
     id: 3,
-    name: "Trigonometry Titan",
-    type: "algebra",
-    difficulty: "precalc",
-    description: "Trigonometric functions",
-    damage: 15,
-    maxHp: 100,
-    xpReward: 25,
-    goldReward: 15,
-    ascii: [
-      "  ▄▄▄▄▄▄  ",
-      " ████████ ",
-      "██░░░░░░██",
-      "██░████░██",
-      "██░░░░░░██",
-      " ████████ ",
-      "  ▀▀▀▀▀▀  ",
-    ],
-  },
-  {
-    id: 4,
-    name: "Logarithmic Lich",
-    type: "algebra",
-    difficulty: "precalc",
-    description: "Logarithms and exponents",
-    damage: 18,
-    maxHp: 90,
-    xpReward: 30,
-    goldReward: 20,
-    ascii: [
-      "   ▄▄▄   ",
-      "  █████  ",
-      " ██▀▀▀██ ",
-      "███▄▄▄███",
-      " ███████ ",
-      "  ▀▀█▀▀  ",
-    ],
-  },
-  {
-    id: 5,
     name: "Derivative Dragon",
     type: "calculus",
     difficulty: "calculus",
     description: "Derivatives and rates of change",
-    damage: 20,
-    maxHp: 120,
-    xpReward: 50,
-    goldReward: 30,
-    ascii: [
-      "    ▄▄▄▄▄    ",
-      "   ███████   ",
-      "  ██▀▀▀▀▀██  ",
-      " ██▄▄▄▄▄▄▄██ ",
-      "██▀▀▀▀▀▀▀▀▀██",
-      " ███████████ ",
-      "  ▀▀▀▀▀▀▀▀▀  ",
-    ],
+    damage: 12,
+    maxHp: 100,
+    xpReward: 200,
+    goldReward: 50,
+    imageSrc: "/derivative-dragon.png",
   },
   {
-    id: 6,
+    id: 4,
     name: "Integral Behemoth",
     type: "calculus",
     difficulty: "calculus",
     description: "Integration and area under curves",
-    damage: 22,
-    maxHp: 110,
-    xpReward: 60,
-    goldReward: 35,
-    ascii: [
-      "  ▄▄▄▄▄▄▄  ",
-      " █████████ ",
-      "██▄▄▄▄▄▄▄██",
-      "██▀▀▀▀▀▀▀██",
-      "██▄▄▄▄▄▄▄██",
-      " █████████ ",
-      "  ▀▀▀▀▀▀▀  ",
-    ],
+    damage: 15,
+    maxHp: 120,
+    xpReward: 300,
+    goldReward: 105,
+    imageSrc: "/integral-behemoth.png",
   },
 ];
 
@@ -193,44 +124,78 @@ export default function BattlePage() {
   const [combo, setCombo] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const [unlockedMonsters, setUnlockedMonsters] = useState<number[]>([1]);
 
   useEffect(() => {
     if (!isLoaded || !user) return;
 
-    const initializeBattle = () => {
+    const initializeBattle = async () => {
       try {
-        const metadata = user.publicMetadata;
-        const difficulty =
-          (metadata.difficulty as "simple" | "precalc" | "calculus") ||
-          "simple";
+        // Use unsafeMetadata for all game data
+        const metadata = user.unsafeMetadata as any;
+        const difficulty = metadata.difficulty || "simple";
         setPlayerDifficulty(difficulty);
 
         const playerHp = typeof metadata.hp === "number" ? metadata.hp : 100;
 
+        // Get unlocked monsters from metadata
+        const userUnlockedMonsters = Array.isArray(metadata.unlockedMonsters)
+          ? Array.from(new Set([1, ...metadata.unlockedMonsters]))
+          : [1];
+
+        setUnlockedMonsters(userUnlockedMonsters);
+
         // Select enemy
         let enemy: Enemy;
         if (monsterId) {
-          enemy =
-            ENEMIES.find((e) => e.id === parseInt(monsterId)) || ENEMIES[0];
+          const requestedId = parseInt(monsterId);
+
+          if (requestedId === 1) {
+            enemy = ENEMIES[0];
+          } else if (userUnlockedMonsters.includes(requestedId)) {
+            enemy = ENEMIES.find((e) => e.id === requestedId) || ENEMIES[0];
+          } else {
+            alert(
+              "This monster is locked! You need to unlock it first in the dashboard.",
+            );
+            router.push("/game");
+            return;
+          }
+
+          // Check if monster is unlocked
+          if (userUnlockedMonsters.includes(requestedId)) {
+            enemy = ENEMIES.find((e) => e.id === requestedId) || ENEMIES[0];
+          } else {
+            // If trying to fight locked monster, redirect to dashboard with message
+            alert(
+              "This monster is locked! You need to unlock it first in the dashboard.",
+            );
+            router.push("/game");
+            return;
+          }
         } else if (isRandom) {
-          const unlockedEnemies = ENEMIES.filter(
-            (e) =>
-              e.difficulty === difficulty ||
-              (difficulty === "precalc" && e.difficulty === "simple") ||
-              (difficulty === "calculus" &&
-                ["simple", "precalc"].includes(e.difficulty)),
+          // Only select from unlocked enemies for random battles
+          const unlockedEnemies = ENEMIES.filter((e) =>
+            userUnlockedMonsters.includes(e.id),
           );
-          enemy =
-            unlockedEnemies[Math.floor(Math.random() * unlockedEnemies.length)];
+
+          if (unlockedEnemies.length === 0) {
+            enemy = ENEMIES[0]; // Fallback to level 1
+          } else {
+            enemy =
+              unlockedEnemies[
+                Math.floor(Math.random() * unlockedEnemies.length)
+              ];
+          }
         } else {
-          // Default to first enemy
+          // Default to first enemy (level 1)
           enemy = ENEMIES[0];
         }
 
         setCurrentEnemy(enemy);
 
-        // Generate first problem
-        const problem = generateMathProblem(difficulty);
+        // Generate first problem based on player's difficulty
+        const problem = generateMathProblem(enemy);
         setCurrentProblem(problem);
 
         setBattleStats((prev) => ({
@@ -242,13 +207,16 @@ export default function BattlePage() {
 
         addToBattleLog(`ENCOUNTER: ${enemy.name}`);
         addToBattleLog(`DIFFICULTY: ${difficulty.toUpperCase()}`);
+        addToBattleLog(
+          `REWARDS: ${enemy.xpReward} XP | ${enemy.goldReward} Gold`,
+        );
 
         // Start timer
         setTimeLeft(problem.timeLimit);
       } catch (error) {
         console.error("Error initializing battle:", error);
         const enemy = ENEMIES[0];
-        const problem = generateMathProblem("simple");
+        const problem = generateMathProblem(enemy);
         setCurrentEnemy(enemy);
         setCurrentProblem(problem);
         addToBattleLog("Battle initialized with simple difficulty.");
@@ -262,7 +230,8 @@ export default function BattlePage() {
         clearInterval(timerRef.current);
       }
     };
-  }, [user, isLoaded, monsterId, isRandom]);
+  }, [user, isLoaded, monsterId, isRandom, router]);
+
   useEffect(() => {
     if (battleStats.battleStatus !== "active" || !currentProblem) return;
 
@@ -300,161 +269,97 @@ export default function BattlePage() {
     ]);
   };
 
-  const generateMathProblem = useCallback((difficulty: string): MathProblem => {
+  const generateMathProblem = useCallback((enemy: Enemy): MathProblem => {
     let question = "";
     let answer = 0;
     let explanation = "";
     let timeLimit = 30;
 
-    switch (difficulty) {
-      case "simple":
-        const num1 = Math.floor(Math.random() * 20) + 1;
-        const num2 = Math.floor(Math.random() * 20) + 1;
-        const operations = ["+", "-", "*"];
-        const operation =
-          operations[Math.floor(Math.random() * operations.length)];
+    switch (enemy.id) {
+      // Arithmetic Golem
+      case 1: {
+        const a = Math.floor(Math.random() * 20) + 1;
+        const b = Math.floor(Math.random() * 20) + 1;
+        const op = ["+", "-"][Math.floor(Math.random() * 2)];
 
-        switch (operation) {
-          case "+":
-            answer = num1 + num2;
-            question = `${num1} + ${num2} = ?`;
-            explanation = `Add ${num1} and ${num2}`;
-            timeLimit = 20;
-            break;
-          case "-":
-            answer = Math.max(num1, num2) - Math.min(num1, num2);
-            question = `${Math.max(num1, num2)} - ${Math.min(num1, num2)} = ?`;
-            explanation = `Subtract ${Math.min(num1, num2)} from ${Math.max(num1, num2)}`;
-            timeLimit = 20;
-            break;
-          case "*":
-            const smallNum1 = Math.floor(Math.random() * 12) + 1;
-            const smallNum2 = Math.floor(Math.random() * 12) + 1;
-            answer = smallNum1 * smallNum2;
-            question = `${smallNum1} × ${smallNum2} = ?`;
-            explanation = `Multiply ${smallNum1} by ${smallNum2}`;
-            timeLimit = 25;
-            break;
+        if (op === "+") {
+          question = `${a} + ${b} = ?`;
+          answer = a + b;
+          explanation = "Add the numbers";
+        } else {
+          question = `${Math.max(a, b)} - ${Math.min(a, b)} = ?`;
+          answer = Math.max(a, b) - Math.min(a, b);
+          explanation = "Subtract the numbers";
         }
+
+        timeLimit = 20;
         break;
+      }
 
-      case "precalc":
-        const problemTypes = ["algebra", "trig", "log"];
-        const problemType =
-          problemTypes[Math.floor(Math.random() * problemTypes.length)];
+      // Fraction Fiend
+      case 2: {
+        const n1 = Math.floor(Math.random() * 9) + 1;
+        const d1 = Math.floor(Math.random() * 9) + 1;
+        const n2 = Math.floor(Math.random() * 9) + 1;
+        const d2 = Math.floor(Math.random() * 9) + 1;
 
-        switch (problemType) {
-          case "algebra":
-            const a = Math.floor(Math.random() * 5) + 1;
-            const b = Math.floor(Math.random() * 10) + 1;
-            const c = Math.floor(Math.random() * 10) + 1;
-            answer = (c - b) / a;
-            question = `Solve: ${a}x + ${b} = ${c}`;
-            explanation = `x = (${c} - ${b}) / ${a}`;
-            timeLimit = 30;
-            break;
-          case "trig":
-            const angles = [0, 30, 45, 60, 90, 180, 270, 360];
-            const angle = angles[Math.floor(Math.random() * angles.length)];
-            const trigFuncs = ["sin", "cos", "tan"];
-            const trigFunc =
-              trigFuncs[Math.floor(Math.random() * trigFuncs.length)];
+        const op = ["+", "-"][Math.floor(Math.random() * 2)];
 
-            switch (trigFunc) {
-              case "sin":
-                answer =
-                  Math.round(Math.sin((angle * Math.PI) / 180) * 100) / 100;
-                question = `sin(${angle}°) = ?`;
-                explanation = `Sine of ${angle} degrees`;
-                break;
-              case "cos":
-                answer =
-                  Math.round(Math.cos((angle * Math.PI) / 180) * 100) / 100;
-                question = `cos(${angle}°) = ?`;
-                explanation = `Cosine of ${angle} degrees`;
-                break;
-              case "tan":
-                answer =
-                  Math.round(Math.tan((angle * Math.PI) / 180) * 100) / 100;
-                question = `tan(${angle}°) = ?`;
-                explanation = `Tangent of ${angle} degrees`;
-                break;
-            }
-            timeLimit = 35;
-            break;
-          case "log":
-            const base = Math.floor(Math.random() * 3) + 2;
-            const exponent = Math.floor(Math.random() * 4) + 1;
-            const value = Math.pow(base, exponent);
-            answer = exponent;
-            question = `log_${base}(${value}) = ?`;
-            explanation = `${base}^? = ${value}`;
-            timeLimit = 35;
-            break;
+        if (op === "+") {
+          question = `${n1}/${d1} + ${n2}/${d2} = ? (decimal)`;
+          answer = Math.round((n1 / d1 + n2 / d2) * 100) / 100;
+          explanation = "Add the fractions";
+        } else {
+          question = `${n1}/${d1} - ${n2}/${d2} = ? (decimal)`;
+          answer = Math.round((n1 / d1 - n2 / d2) * 100) / 100;
+          explanation = "Subtract the fractions";
         }
-        break;
 
-      case "calculus":
-        const calcTypes = ["derivative", "integral", "limit"];
-        const calcType =
-          calcTypes[Math.floor(Math.random() * calcTypes.length)];
-
-        switch (calcType) {
-          case "derivative":
-            const coeff = Math.floor(Math.random() * 5) + 1;
-            const power = Math.floor(Math.random() * 3) + 2;
-            answer = coeff * power;
-            question = `d/dx [${coeff}x^${power}] at x=1`;
-            explanation = `${coeff}*${power}*x^${power - 1}`;
-            timeLimit = 40;
-            break;
-          case "integral":
-            const intCoeff = Math.floor(Math.random() * 4) + 1;
-            const intPower = Math.floor(Math.random() * 2) + 1;
-            answer = intCoeff / (intPower + 1);
-            question = `∫${intCoeff}x^${intPower} dx (x=1, ignore +C)`;
-            explanation = `${intCoeff}x^${intPower + 1}/${intPower + 1}`;
-            timeLimit = 45;
-            break;
-          case "limit":
-            answer = 1;
-            question = `lim(x→0) sin(x)/x`;
-            explanation = `Standard limit = 1`;
-            timeLimit = 40;
-            break;
-        }
+        timeLimit = 30;
         break;
+      }
+
+      // Derivative Dragon
+      case 3: {
+        const coeff = Math.floor(Math.random() * 5) + 1;
+        const power = Math.floor(Math.random() * 3) + 1;
+
+        question = `d/dx (${coeff}x^${power})`;
+        answer = coeff * power;
+        explanation = "Power rule: multiply coefficient by exponent";
+
+        timeLimit = 40;
+        break;
+      }
+
+      // Integral Behemoth
+      case 4: {
+        const coeff = Math.floor(Math.random() * 4) + 1;
+        const power = Math.floor(Math.random() * 3) + 1;
+
+        question = `∫ ${coeff}x^${power} dx (ignore +C)`;
+        answer = coeff / (power + 1);
+        explanation = "Increase power by 1 and divide";
+
+        timeLimit = 45;
+        break;
+      }
     }
 
-    // Generate choices
     const choices = [answer];
-    for (let i = 0; i < 3; i++) {
-      let wrongAnswer;
-      if (difficulty === "calculus") {
-        wrongAnswer = answer + (Math.random() > 0.5 ? 0.5 : -0.5) * (i + 1);
-      } else {
-        wrongAnswer = answer + (Math.random() > 0.5 ? 1 : -1) * (i + 1);
-      }
-
-      if (choices.includes(wrongAnswer)) {
-        wrongAnswer += 1;
-      }
-
-      choices.push(wrongAnswer);
+    while (choices.length < 4) {
+      const wrong = Math.round((answer + (Math.random() * 2 - 1)) * 100) / 100;
+      if (!choices.includes(wrong)) choices.push(wrong);
     }
 
-    // Shuffle
-    for (let i = choices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [choices[i], choices[j]] = [choices[j], choices[i]];
-    }
+    choices.sort(() => Math.random() - 0.5);
 
     return {
       id: Date.now(),
       question,
       answer,
       choices,
-      difficulty: difficulty as "simple" | "precalc" | "calculus",
+      difficulty: enemy.difficulty,
       explanation,
       timeLimit,
     };
@@ -462,8 +367,13 @@ export default function BattlePage() {
 
   const handleTimeOut = () => {
     if (battleStats.battleStatus !== "active") return;
+    const damage =
+      currentEnemy?.id === 1
+        ? 2
+        : currentEnemy?.id === 2
+          ? 4
+          : currentEnemy?.damage || 10;
 
-    const damage = currentEnemy?.damage || 10;
     const newPlayerHp = Math.max(0, battleStats.playerHp - damage);
 
     setBattleStats((prev) => ({
@@ -506,23 +416,27 @@ export default function BattlePage() {
       // Calculate damage based on time left and combo
       const timeBonus = Math.floor(timeLeft / 5);
       const comboBonus = combo * 2;
-      const baseDamage = 20;
+      const baseDamage =
+        currentEnemy.id === 1
+          ? 22
+          : currentEnemy.id === 2
+            ? 20
+            : currentEnemy.id === 3
+              ? 18
+              : 16;
+
       const totalDamage = baseDamage + timeBonus + comboBonus;
 
       const newEnemyHp = Math.max(0, battleStats.enemyHp - totalDamage);
       const newCombo = combo + 1;
       const newScore = score + timeLeft * 10 + combo * 50;
 
-      setBattleStats((prev) => {
-        const damage = Math.floor(Math.random() * 8);
-        const newEnemyHp = Math.max(0, prev.enemyHp - damage);
-
-        return {
-          ...prev,
-          enemyHp: newEnemyHp,
-          round: prev.round + 1,
-        };
-      });
+      // FIX: Update enemy HP with calculated damage instead of random
+      setBattleStats((prev) => ({
+        ...prev,
+        enemyHp: newEnemyHp,
+        round: prev.round + 1,
+      }));
 
       setCombo(newCombo);
       setScore(newScore);
@@ -566,7 +480,7 @@ export default function BattlePage() {
 
     // Generate new problem
     setTimeout(() => {
-      const newProblem = generateMathProblem(playerDifficulty);
+      const newProblem = generateMathProblem(currentEnemy);
       setCurrentProblem(newProblem);
       setUserAnswer("");
       setTimeLeft(newProblem.timeLimit);
@@ -579,7 +493,9 @@ export default function BattlePage() {
   const handleEnemyTurn = () => {
     if (!currentEnemy || battleStats.battleStatus !== "active") return;
 
-    const damage = currentEnemy.damage + Math.floor(Math.random() * 8);
+    const variance = currentEnemy.id <= 2 ? 2 : 6;
+
+    const damage = currentEnemy.damage + Math.floor(Math.random() * variance);
     const newPlayerHp = Math.max(0, battleStats.playerHp - damage);
 
     setBattleStats((prev) => ({
@@ -607,24 +523,42 @@ export default function BattlePage() {
 
     if (user && currentEnemy) {
       try {
-        const metadata = user.publicMetadata;
+        // Get current metadata from unsafeMetadata
+        const metadata = user.unsafeMetadata as any;
         const currentWins =
           typeof metadata.wins === "number" ? metadata.wins : 0;
+        const currentLosses =
+          typeof metadata.losses === "number" ? metadata.losses : 0;
         const currentGold =
           typeof metadata.gold === "number" ? metadata.gold : 0;
         const currentXP = typeof metadata.xp === "number" ? metadata.xp : 0;
         const currentLevel =
           typeof metadata.level === "number" ? metadata.level : 1;
+
+        // Get current unlocked monsters
+        const currentUnlockedMonsters = Array.isArray(metadata.unlockedMonsters)
+          ? Array.from(new Set([1, ...metadata.unlockedMonsters]))
+          : [1];
+
+        // Get battle log
         const battleLog = Array.isArray(metadata.battleLog)
           ? metadata.battleLog
           : [];
 
-        // Calculate XP needed for next level
-        const xpNeeded = 100 * Math.pow(1.5, currentLevel - 1);
+        // Calculate new XP
         const newXP = currentXP + currentEnemy.xpReward;
-        const newLevel = newXP >= xpNeeded ? currentLevel + 1 : currentLevel;
 
-        // Add to battle log
+        // Calculate new level based on XP thresholds (matching dashboard)
+        let newLevel = currentLevel;
+        const levelThresholds = [0, 100, 300, 600, 1000];
+        for (let i = levelThresholds.length - 1; i >= 1; i--) {
+          if (newXP >= levelThresholds[i]) {
+            newLevel = i + 1;
+            break;
+          }
+        }
+
+        // Create battle log entry
         const logEntry = {
           id: Date.now(),
           date: new Date().toISOString(),
@@ -634,6 +568,7 @@ export default function BattlePage() {
           goldGained: currentEnemy.goldReward,
         };
 
+        // Update user metadata in unsafeMetadata
         await user.update({
           unsafeMetadata: {
             ...metadata,
@@ -641,7 +576,11 @@ export default function BattlePage() {
             gold: currentGold + currentEnemy.goldReward,
             xp: newXP,
             level: newLevel,
-            hp: Math.min(100, battleStats.playerHp + 20),
+            hp: Math.min(
+              100,
+              battleStats.playerHp + (currentEnemy.id <= 2 ? 35 : 20),
+            ),
+            unlockedMonsters: currentUnlockedMonsters,
             battleLog: [...battleLog, logEntry].slice(-10),
           },
         });
@@ -662,19 +601,24 @@ export default function BattlePage() {
 
     if (user && currentEnemy) {
       try {
-        const metadata = user.publicMetadata;
+        const metadata = user.unsafeMetadata as any;
         const currentLosses =
           typeof metadata.losses === "number" ? metadata.losses : 0;
+        const currentXP = typeof metadata.xp === "number" ? metadata.xp : 0;
         const battleLog = Array.isArray(metadata.battleLog)
           ? metadata.battleLog
           : [];
+
+        // Grant reduced XP on loss (20% of enemy's XP reward)
+        const reducedXP = Math.floor(currentEnemy.xpReward * 0.2);
+        const newXP = currentXP + reducedXP;
 
         const logEntry = {
           id: Date.now(),
           date: new Date().toISOString(),
           enemy: currentEnemy.name,
           result: "lost" as const,
-          xpGained: 0,
+          xpGained: reducedXP,
           goldGained: 0,
         };
 
@@ -682,7 +626,8 @@ export default function BattlePage() {
           unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
-            hp: 50,
+            hp: 50, // Reset to 50 HP on loss
+            xp: newXP,
             battleLog: [...battleLog, logEntry].slice(-10),
           },
         });
@@ -696,7 +641,7 @@ export default function BattlePage() {
     }, 3000);
   };
 
-  const handleFlee = () => {
+  const handleFlee = async () => {
     if (battleStats.battleStatus !== "active") return;
 
     setBattleStats((prev) => ({ ...prev, battleStatus: "fled" }));
@@ -705,7 +650,7 @@ export default function BattlePage() {
 
     if (user) {
       try {
-        const metadata = user.publicMetadata;
+        const metadata = user.unsafeMetadata as any;
         const currentLosses =
           typeof metadata.losses === "number" ? metadata.losses : 0;
         const battleLog = Array.isArray(metadata.battleLog)
@@ -721,7 +666,7 @@ export default function BattlePage() {
           goldGained: 0,
         };
 
-        user.update({
+        await user.update({
           unsafeMetadata: {
             ...metadata,
             losses: currentLosses + 1,
@@ -789,24 +734,19 @@ export default function BattlePage() {
           {/* Player Section */}
           <div className={styles.playerSection}>
             <div className={styles.characterCard}>
-              <div className={styles.characterAscii}>
-                <div className={styles.asciiBox}>
-                  {[
-                    "   ▄▄▄▄▄   ",
-                    "  ███████  ",
-                    " ██     ██ ",
-                    "██  ███  ██",
-                    "██       ██",
-                    " ██     ██ ",
-                    "  ███████  ",
-                    "   ▀▀▀▀▀   ",
-                  ].map((line, i) => (
-                    <div key={i} className={styles.asciiLine}>
-                      {line}
-                    </div>
-                  ))}
-                </div>
+              <div className={styles.characterImage}>
+                {user?.imageUrl ? (
+                  <img
+                    src={user.imageUrl}
+                    alt="Hero Avatar"
+                    className={styles.heroImage}
+                    draggable={false}
+                  />
+                ) : (
+                  <div className={styles.heroFallback}>HERO</div>
+                )}
               </div>
+
               <div className={styles.characterInfo}>
                 <h3>{user?.firstName?.toUpperCase() || "HERO"}</h3>
                 <div className={styles.hpBar}>
@@ -825,7 +765,7 @@ export default function BattlePage() {
                 </div>
                 <div className={styles.statusInfo}>
                   <span className={styles.statusItem}>
-                    Level: {playerDifficulty.toUpperCase()}
+                    Difficulty: {playerDifficulty.toUpperCase()}
                   </span>
                   <span className={styles.statusItem}>
                     Turn: {battleStats.turn === "player" ? "YOURS" : "ENEMY"}
@@ -865,20 +805,25 @@ export default function BattlePage() {
                 </div>
                 <div className={styles.rewardInfo}>
                   <span className={styles.rewardItem}>
-                    🎯 {currentEnemy?.xpReward || 0} XP
+                    {currentEnemy?.xpReward || 0} XP
                   </span>
                   <span className={styles.rewardItem}>
-                    💰 {currentEnemy?.goldReward || 0} Gold
+                    {currentEnemy?.goldReward || 0} Gold
                   </span>
                 </div>
               </div>
               <div className={styles.characterAscii}>
-                <div className={styles.asciiBox}>
-                  {currentEnemy?.ascii?.map((line, i) => (
-                    <div key={i} className={styles.asciiLine}>
-                      {line}
-                    </div>
-                  )) || <div className={styles.loadingAscii}>Loading...</div>}
+                <div className={styles.imageBox}>
+                  {currentEnemy ? (
+                    <img
+                      src={currentEnemy.imageSrc}
+                      alt={currentEnemy.name}
+                      className={styles.enemyImageAnimated}
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className={styles.loadingImage}>Loading...</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1017,7 +962,7 @@ export default function BattlePage() {
                 <>
                   <div className={styles.resultRewards}>
                     <div className={styles.rewardItem}>
-                      <div className={styles.rewardIcon}>🎯</div>
+                      <div className={styles.rewardIcon}></div>
                       <div className={styles.rewardText}>
                         <div className={styles.rewardLabel}>XP GAINED</div>
                         <div className={styles.rewardValue}>
@@ -1026,7 +971,7 @@ export default function BattlePage() {
                       </div>
                     </div>
                     <div className={styles.rewardItem}>
-                      <div className={styles.rewardIcon}>💰</div>
+                      <div className={styles.rewardIcon}></div>
                       <div className={styles.rewardText}>
                         <div className={styles.rewardLabel}>GOLD GAINED</div>
                         <div className={styles.rewardValue}>
@@ -1035,7 +980,7 @@ export default function BattlePage() {
                       </div>
                     </div>
                     <div className={styles.rewardItem}>
-                      <div className={styles.rewardIcon}>⭐</div>
+                      <div className={styles.rewardIcon}></div>
                       <div className={styles.rewardText}>
                         <div className={styles.rewardLabel}>FINAL SCORE</div>
                         <div className={styles.rewardValue}>{score}</div>
@@ -1049,9 +994,15 @@ export default function BattlePage() {
               )}
 
               {battleStats.battleStatus === "lost" && (
-                <p className={styles.resultMessage}>
-                  The {currentEnemy?.name} was too strong. Try again!
-                </p>
+                <>
+                  <p className={styles.resultMessage}>
+                    The {currentEnemy?.name} was too strong. Try again!
+                  </p>
+                  <p className={styles.resultHint}>
+                    Don't give up! You still earned some XP. Farm the Arithmetic
+                    Golem to build your strength.
+                  </p>
+                </>
               )}
 
               {battleStats.battleStatus === "fled" && (
