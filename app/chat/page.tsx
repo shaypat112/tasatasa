@@ -12,23 +12,21 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useEffect, useRef, useState } from "react";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ChatPage() {
-
-
   const { user, isLoaded } = useUser();
   const [messages, setMessages] = useState<any[]>([]);
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
-  const router  = useRouter();
-  
+  const router = useRouter();
+
   useEffect(() => {
     const q = query(
       collection(db, "rooms", "global", "messages"),
       orderBy("createdAt", "asc"),
-      limit(100)
+      limit(100),
     );
 
     const unsub = onSnapshot(q, (snap) => {
@@ -78,7 +76,6 @@ export default function ChatPage() {
         padding: 16,
       }}
     >
-        
       <h1 style={{ marginBottom: 12 }}>USER CHAT</h1>
 
       <div
@@ -115,7 +112,7 @@ export default function ChatPage() {
             fontFamily: '"Press Start 2P", monospace',
           }}
         />
-        
+
         <button
           onClick={sendMessage}
           style={{
@@ -129,11 +126,7 @@ export default function ChatPage() {
         >
           SEND
         </button>
-        <button onClick={() => router.push("/")}>
-        Home
-            
-        </button>
-       
+        <button onClick={() => router.push("/")}>Home</button>
       </div>
     </div>
   );

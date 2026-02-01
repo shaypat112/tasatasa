@@ -254,6 +254,28 @@ main {
   bottom: 24px;
   right: 24px;
   z-index: 1000;
-  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.4));
+  filter: drop-shadow(0 6px 16px rgfba(0, 0, 0, 0.4));
 }
 
+.settings-indicator {
+  position: absolute;
+  top: 44px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #9ca3af;
+  user-select: none;
+  z-index: 40;
+}
+
+.settings-arrow {
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.settings-label {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}

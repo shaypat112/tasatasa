@@ -7,18 +7,16 @@ export default function CodeWindow() {
   const [tab, setTab] = useState<"code" | "gameplay">("code");
   const [minimized, setMinimized] = useState<boolean | null>(null);
 
-useEffect(() => {
-  const saved = localStorage.getItem("codeWindowMinimized");
-  setMinimized(saved === "true");
-}, []);
+  useEffect(() => {
+    const saved = localStorage.getItem("codeWindowMinimized");
+    setMinimized(saved === "true");
+  }, []);
 
-
-function setMinimizedAndSave(value: boolean) {
-  setMinimized(value);
-  localStorage.setItem("codeWindowMinimized", String(value));
-}
-if (minimized === null) return null;
-
+  function setMinimizedAndSave(value: boolean) {
+    setMinimized(value);
+    localStorage.setItem("codeWindowMinimized", String(value));
+  }
+  if (minimized === null) return null;
 
   if (minimized) {
     return (
@@ -27,7 +25,7 @@ if (minimized === null) return null;
           className={styles.restoreButton}
           onClick={() => setMinimizedAndSave(false)}
         >
-          SHOW DEMO 
+          SHOW DEMO
         </button>
       </div>
     );
@@ -72,7 +70,7 @@ if (minimized === null) return null;
         <div className={styles.body}>
           {tab === "code" ? (
             <pre className={styles.code}>
-{`function generateProblem(mode) {
+              {`function generateProblem(mode) {
   switch (mode) {
     case "simple":
       return addOrSubtract();
@@ -95,63 +93,59 @@ if (player.answer === correct) {
 }`}
             </pre>
           ) : (
-           <div className={styles.gameplay}>
-  <p className={styles.gameplayTitle}>MATH BATTLE DEMO</p>
+            <div className={styles.gameplay}>
+              <p className={styles.gameplayTitle}>MATH BATTLE DEMO</p>
 
-  {/* Battle field */}
-  <div className={styles.battleField}>
-    {/* Player */}
-    <div className={styles.character}>
-      <p className={styles.label}>PLAYER</p>
-     <div className={styles.spriteBox}>
-  <img
-    src="/math.png"
-    alt="Player User "
-    className={styles.sprite}
-  />
-</div>
+              {/* Battle field */}
+              <div className={styles.battleField}>
+                {/* Player */}
+                <div className={styles.character}>
+                  <p className={styles.label}>PLAYER</p>
+                  <div className={styles.spriteBox}>
+                    <img
+                      src="/math.png"
+                      alt="Player User "
+                      className={styles.sprite}
+                    />
+                  </div>
 
-      <div className={styles.bar}>
-        <div className={styles.playerFill} />
-      </div>
-    </div>
+                  <div className={styles.bar}>
+                    <div className={styles.playerFill} />
+                  </div>
+                </div>
 
-    {/* Center prompt */}
-    <div className={styles.mathPrompt}>
-      <p className={styles.promptTitle}>SOLVE</p>
-      <p className={styles.promptText}>
-        2x² − 5x + 3 = 0
-      </p>
-      <p className={styles.cursor}>▌</p>
-    </div>
+                {/* Center prompt */}
+                <div className={styles.mathPrompt}>
+                  <p className={styles.promptTitle}>SOLVE</p>
+                  <p className={styles.promptText}>4x + 9x + 3x = 2000</p>
+                  <p className={styles.cursor}>▌</p>
+                </div>
 
-    {/* Enemy */}
-    <div className={styles.character}>
-      <p className={styles.label}>ENEMY</p>
-      <div className={styles.spriteBox}>
-  <img
-    src="/evilAI.png"
-    alt="AI Bot "
-    className={styles.sprite}
-  />
-  
-</div>
-      <div className={styles.bar}>
-        <div className={styles.enemyFill} />
-      </div>
-    </div>
-  </div>
+                {/* Enemy */}
+                <div className={styles.character}>
+                  <p className={styles.label}>ENEMY</p>
+                  <div className={styles.spriteBox}>
+                    <img
+                      src="/evilAI.png"
+                      alt="AI Bot "
+                      className={styles.sprite}
+                    />
+                  </div>
+                  <div className={styles.bar}>
+                    <div className={styles.enemyFill} />
+                  </div>
+                </div>
+              </div>
 
-  {/* Math levels */}
-  <div className={styles.levelStrip}>
-    <span className={styles.levelActive}>SIMPLE</span>
-    <span>MATH 3</span>
-    <span>MODERATE</span>
-    <span>AP PRECALC</span>
-    <span>CALC AB</span>
-  </div>
-</div>
-
+              {/* Math levels */}
+              <div className={styles.levelStrip}>
+                <span className={styles.levelActive}>SIMPLE</span>
+                <span>MATH 3</span>
+                <span>MODERATE</span>
+                <span>AP PRECALC</span>
+                <span>CALC AB</span>
+              </div>
+            </div>
           )}
         </div>
       </div>

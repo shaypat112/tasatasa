@@ -46,24 +46,21 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} bg-black text-white`}
-        >
-          <div className="grid grid-cols-[220px_1fr] min-h-screen">
-            {/* Sidebar (future) */}
-            <div />
+        <body className="app-body">
+          <div className="app-grid">
+            <div className="app-sidebar" />
 
-            {/* Main Area */}
-            <div className="flex flex-col">
-              {/* Header */}
-              <header className="absolute top-2 left-2 z-50">
+            <div className="app-main">
+              <header className="app-auth">
                 <AuthGate />
               </header>
 
-              {/* Content */}
-              <main className="flex-1 flex items-center justify-center p-6">
-                {children}
-              </main>
+              <div className="settings-indicator">
+                <span className="settings-arrow">↳</span>
+                <span className="settings-label">Settings</span>
+              </div>
+
+              <main className="app-content">{children}</main>
             </div>
           </div>
         </body>
