@@ -15,24 +15,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Retro Shift",
-  description: "16 bit web game",
+  title: "Dune Parodox II",
+  description: "16 bit web math game",
   metadataBase: new URL("http://localhost:3000"),
   openGraph: {
-    title: "Retro Shift",
+    title: "Dune Paradox II",
     description: "16 bit web game",
     images: [
       {
         url: "/math.png",
         width: 1200,
         height: 630,
-        alt: "RetroShift AP Precalculus Retro Game",
+        alt: "Dune Parodox II  Retron styled Math Game",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Retro Shift",
+    title: "Dune Paradox II",
     description: "16 bit web game",
     images: ["/math.png"],
   },

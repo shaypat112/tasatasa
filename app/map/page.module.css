@@ -2,22 +2,79 @@
 
 /* Base Container */
 .container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, 
-    #0a0a1a 0%, 
-    #11112a 25%, 
-    #1a1a3a 50%, 
-    #22224a 75%, 
-    #2a2a5a 100%);
+  min-height: 100svh; /* better than 100vh on mobile */
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+
+  background: linear-gradient(
+    135deg,
+    #0a0a1a 0%,
+    #11112a 25%,
+    #1a1a3a 50%,
+    #22224a 75%,
+    #2a2a5a 100%
+  );
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
-  font-family: 'Press Start 2P', 'Courier New', monospace;
+
+  padding: clamp(12px, 4vw, 32px);
+
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: clamp(10px, 1.5vw, 14px);
+
   position: relative;
   overflow-x: hidden;
   image-rendering: pixelated;
 }
+
+@media (max-width: 640px) {
+  .container {
+    font-size: 10px;
+    padding: 12px;
+    align-items: stretch;
+  }
+}
+@media (min-width: 1280px) {
+  .container {
+    font-size: 14px;
+  }
+}
+.gameContainer {
+  width: 100%;
+  max-width: 100vw;
+  display: flex;
+  justify-content: center;
+}
+@media (max-width: 768px) {
+  .topHud {
+    font-size: 10px;
+    gap: 6px;
+  }
+
+  .controlHints {
+    display: none;
+  }
+}
+
+
+.canvasWrapper {
+  width: 100%;
+  max-width: min(100vw, 800px);
+  aspect-ratio: 4 / 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.canvasWrapper canvas {
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
 
 /* CRT Monitor Effects */
 .scanlines {
@@ -263,7 +320,7 @@ opacity: 90%;
 }
 
 .missionText {
-  color: #fff;
+  color: #ff0e0e;
   font-size: 0.9rem;
   text-shadow: 1px 1px 0 #000;
 }
@@ -429,12 +486,14 @@ opacity: 90%;
   height: 60px;
   border-radius: 30;
   overflow: hidden;
+  margin-right: 0px
 }
 
 .profileAvatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+
 }
 
 .avatarFallback {
@@ -454,6 +513,7 @@ opacity: 90%;
   font-size: 0.9rem;
   font-weight: bold;
   text-shadow: 1px 1px 0 #000;
+    margin-right: 110px
 }
 
 .profileStats {

@@ -169,23 +169,8 @@ export default function AboutPage() {
             <div className={styles.titleSection}>
               <h1 className={styles.title}>SYSTEM DOCUMENTATION</h1>
               <p className={styles.subtitle}>
-                RETRO-SHIFT - Documentation and Design
+                Dune Parodox II - Documentation and Design
               </p>
-            </div>
-          </div>
-
-          <div className={styles.headerInfo}>
-            <div className={styles.infoItem}>
-              <FiCpu className={styles.infoIcon} />
-              <span>BUILD: v1.0.0-RETRO</span>
-            </div>
-            <div className={styles.infoItem}>
-              <FiDatabase className={styles.infoIcon} />
-              <span>STATUS: OPERATIONAL</span>
-            </div>
-            <div className={styles.infoItem}>
-              <FiLock className={styles.infoIcon} />
-              <span>AUTH: CLERK SECURED</span>
             </div>
           </div>
         </header>
@@ -220,17 +205,6 @@ export default function AboutPage() {
                 <FiTerminal className={styles.sectionIcon}></FiTerminal>
                 <FiTerminal className={styles.sectionIcon} />
                 <h2> Design </h2>
-              </div>
-
-              <div className={styles.contentCard}>
-                <div className={styles.asciiArt}>
-                  <pre className={styles.ascii}>
-                    {`
-  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-  █░▒▓█ RETROSHIFT MATH IS FUN - v1.0 █▓▒░█
-  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀`}
-                  </pre>
-                </div>
               </div>
 
               <div className={styles.architecture}>
@@ -334,7 +308,7 @@ export default function AboutPage() {
                   <pre className={styles.ascii}>
                     {`
   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-  █░▒▓█ RETRO SHIFT PROMPT █▓▒░█
+  █░▒▓█ Dune Parodox II PROMPT █▓▒░█
   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 
   The annual theme: Create a 16-bit era
@@ -373,7 +347,7 @@ export default function AboutPage() {
           <div className={styles.footerContent}>
             <div className={styles.terminalPrompt}>
               <span className={styles.promptPrefix}>
-                system@retro-shift-game:~$
+                system@Dune Parodox II:~$
               </span>
               <span className={styles.promptText}> _</span>
               <span className={styles.cursor}>█</span>

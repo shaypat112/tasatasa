@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import DifficultySelector from "./components/DifficultySelector";
-import TechStacks from "./components/TechStacks";
 import CodeWindow from "./components/CodeWindow/CodeWindow";
 
 export default function HomePage() {
@@ -13,7 +12,7 @@ export default function HomePage() {
       {/* Main Hero */}
       <main className="flex flex-1 items-center justify-center px-6">
         <div className="text-center border-4 border-white p-10 bg-black max-w-md w-full space-y-8">
-          <h1 className="text-3xl tracking-widest">RETRO SHIFT</h1>
+          <h1 className="text-3xl tracking-widest">Dune Parodox II </h1>
 
           <p className="text-xs text-gray-400 leading-relaxed">
             A 16 bit
@@ -27,7 +26,9 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-4">
             <Link href="/game">
-              <button className="retro-button w-full"> MATH DASHBOARD</button>
+              <button className="retro-button w-full">
+                FIGHT MAP MONSTERS
+              </button>
             </Link>
 
             <Link href="/chat">
@@ -35,7 +36,7 @@ export default function HomePage() {
                 className="retro-button w-full opacity-40 cursor-not-allowed"
                 aria-disabled="true"
               >
-                ChatRoom
+                Player Chat
               </button>
             </Link>
 
@@ -44,7 +45,15 @@ export default function HomePage() {
                 className="retro-button w-full opacity-40 cursor-not-allowed"
                 aria-disabled="true"
               >
-                Start Game
+                Explore Map
+              </button>
+            </Link>
+            <Link href="/about">
+              <button
+                className="retro-button w-30 opacity-40 cursor-not-allowed"
+                aria-disabled="true"
+              >
+                Docs
               </button>
             </Link>
           </div>
@@ -68,9 +77,7 @@ export default function HomePage() {
       </section>
 
       {/* Tech stack */}
-      <section className="techstack-section py-12">
-        <TechStacks />
-      </section>
+      <section className="techstack-section py-12"></section>
     </div>
   );
 }

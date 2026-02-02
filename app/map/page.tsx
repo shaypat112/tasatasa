@@ -429,7 +429,7 @@ export default function MapPage() {
       <div className={styles.splashScreen}>
         <div className={styles.splashContent}>
           <div className={styles.splashLogo}>🎮</div>
-          <h1 className={styles.splashTitle}>RETRO QUEST</h1>
+          <h1 className={styles.splashTitle}>Dune Parodox II</h1>
           <div className={styles.splashLoader}>
             <div className={styles.splashBar}></div>
           </div>
@@ -467,20 +467,22 @@ export default function MapPage() {
           }}
         >
           {/* Game Canvas */}
-          <GameCanvas
-            ref={gameCanvasRef}
-            width={800}
-            height={600}
-            onTokenCollected={handleTokenCollected}
-            onPlayerHit={handlePlayerHit}
-            onEnemyDefeated={handleEnemyDefeated}
-            onPowerUpCollected={handlePowerUpCollected}
-            gamePhase={gamePhase}
-            isPaused={isPaused}
-            playerLevel={playerLevel}
-            hearts={hearts}
-            gameOver={gameOver}
-          />
+          <div className={styles.canvasWrapper}>
+            <GameCanvas
+              ref={gameCanvasRef}
+              width={800}
+              height={600}
+              onTokenCollected={handleTokenCollected}
+              onPlayerHit={handlePlayerHit}
+              onEnemyDefeated={handleEnemyDefeated}
+              onPowerUpCollected={handlePowerUpCollected}
+              gamePhase={gamePhase}
+              isPaused={isPaused}
+              playerLevel={playerLevel}
+              hearts={hearts}
+              gameOver={gameOver}
+            />
+          </div>
 
           {/* Top HUD */}
           <div className={styles.topHud}>
@@ -559,9 +561,6 @@ export default function MapPage() {
                     {powerup === "invincible" && "🛡️"}
                   </div>
                 ))}
-                {activePowerUps.length === 0 && (
-                  <div className={styles.noPowerUps}>NO ACTIVE POWER-UPS</div>
-                )}
               </div>
             </div>
           </div>
@@ -710,12 +709,7 @@ export default function MapPage() {
                 <div className={styles.profileName}>
                   {user.fullName || "ANONYMOUS HERO"}
                 </div>
-                <div className={styles.profileStats}>
-                  <span className={styles.profileStat}>
-                    RANK: #{Math.floor(Math.random() * 1000) + 1}
-                  </span>
-                  <span className={styles.profileStat}>CLOUD SAVE: ON</span>
-                </div>
+                <div className={styles.profileStats}></div>
               </div>
               <SignOutButton>
                 <button className={styles.logoutButton}>LOGOUT</button>

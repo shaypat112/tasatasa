@@ -459,7 +459,7 @@ export default function GameDashboard() {
       {/* Header */}
       <header className={styles.header}>
         <div className={styles.titleSection}>
-          <h1 className={styles.title}>Retro Shift </h1>
+          <h1 className={styles.title}>Dune Parodox II</h1>
         </div>
         <div className={styles.userInfo}>
           <div className={styles.userAvatar}>
@@ -823,18 +823,6 @@ export default function GameDashboard() {
                       to win!
                     </div>
                   </div>
-                  <div className={styles.progressionGuide}>
-                    <h4>XP Progression Guide:</h4>
-                    <ul>
-                      <li>Level 1 → 2: 100 XP (10 battles)</li>
-                      <li>Level 2 → 3: 300 XP (20 battles)</li>
-                      <li>Level 3 → 4: 600 XP (12 battles)</li>
-                    </ul>
-                    <p className={styles.tip}>
-                      💡 <strong>Tip:</strong> Farm the Arithmetic Golem (10 XP
-                      each) to build your XP before unlocking harder monsters.
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
@@ -846,10 +834,6 @@ export default function GameDashboard() {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerLinks}>
-            <span className={styles.footerLink}>© 2026 RetroShift</span>
-            <span className={styles.footerLink}>•</span>
-            <span className={styles.footerLink}>Retro Shift</span>
-            <span className={styles.footerLink}>•</span>
             <button
               className={styles.button}
               onClick={() => router.push("/about")}

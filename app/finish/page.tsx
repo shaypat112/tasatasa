@@ -18,7 +18,7 @@ export default function FinishPage() {
     });
 
     const link = document.createElement("a");
-    link.download = "retro-quest-finish.png";
+    link.download = "Dune-Parodox-II-finish.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
   };
@@ -37,7 +37,7 @@ export default function FinishPage() {
           </div>
           <div className={styles.statRow}>
             <span>MODE</span>
-            <span>RETRO QUEST</span>
+            <span> Dune Parodox II</span>
           </div>
           <div className={styles.statRow}>
             <span>RESULT</span>
@@ -59,7 +59,7 @@ export default function FinishPage() {
         </div>
       </div>
 
-      <div className={styles.footer}>© Retro Quest</div>
+      <div className={styles.footer}>© Dune Parodox II</div>
     </div>
   );
 }

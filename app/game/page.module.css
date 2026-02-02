@@ -198,34 +198,46 @@
 /* Card Styles */
 .card {
   background: rgba(17, 17, 17, 0.85);
-  border-radius: 0;
-  margin-bottom: 20px;
+  border-radius: 6px;
+  margin-bottom: 32px;
   overflow: hidden;
   position: relative;
-  backdrop-filter: blur(5px);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: "Courier New", monospace;
 }
 
+/* blinking cursor */
 .card::before {
   content: "█";
   position: absolute;
-  top: 5px;
-  left: 5px;
-  color: rgba(255, 255, 255, 0.8);
+  top: 16px;
+  left: 10px;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 10px;
-  animation: blink 1s infinite;
+  animation: blink 1.1s steps(1) infinite;
+  pointer-events: none;
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .cardHeader {
   background: rgba(0, 0, 0, 0.9);
-  padding: 15px 20px;
+  padding: 14px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .cardHeader h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.9);
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -233,20 +245,29 @@
 }
 
 .cardBadge {
-  background: rgba(255, 255, 255, 0.9);
-  color: rgba(0, 0, 0, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  color: rgba(0, 0, 0, 0.95);
   padding: 3px 8px;
-  border-radius: 0;
   font-size: 10px;
   font-weight: bold;
   letter-spacing: 1px;
   border: 1px solid rgba(255, 255, 255, 0.9);
-  font-family: 'Courier New', monospace;
+  border-radius: 2px;
 }
 
 .cardContent {
-  padding: 20px;
+  padding: 18px 20px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.5;
 }
+
+/* accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .card::before {
+    animation: none;
+  }
+}
+
 
 /* Stats Grid */
 .statGrid {
@@ -439,7 +460,7 @@
 
 .actionButton:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.9);
-  color: rgba(0, 0, 0, 0.9);
+  color: rgba(186, 0, 0, 0.9);
   box-shadow: 3px 3px 0px rgba(255, 255, 255, 0.8);
   transform: translate(-2px, -2px);
 }
@@ -452,12 +473,11 @@
 .actionButton:disabled {
   opacity: 0.3;
   cursor: not-allowed;
-  border-color: rgba(85, 85, 85, 0.8);
   color: rgba(85, 85, 85, 0.8);
 }
 
 .actionButton.primary {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(245, 13, 13, 0.9);
   color: rgba(255, 255, 255, 0.9);
   border-width: 2px;
 }
@@ -514,7 +534,6 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
   display: flex;
   align-items: center;
   justify-content: center;

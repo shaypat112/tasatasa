@@ -58,11 +58,13 @@ export default function CodeWindow() {
           </div>
 
           <button
-            className={styles.minimizeButton}
+            className={`${styles.minimizeButton} ${
+              tab === "gameplay" ? styles.mobileMinimize : ""
+            }`}
             onClick={() => setMinimizedAndSave(true)}
             aria-label="Minimize"
           >
-            _
+            Return
           </button>
         </div>
 
