@@ -26,7 +26,7 @@ export const metadata: Metadata = {
         url: "/math.png",
         width: 1200,
         height: 630,
-        alt: "Dune Parodox II  Retron styled Math Game",
+        alt: "Dune Parodox II  Retro styled Math Game",
       },
     ],
   },
