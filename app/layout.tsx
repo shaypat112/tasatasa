@@ -55,11 +55,6 @@ export default function RootLayout({
                 <AuthGate />
               </header>
 
-              <div className="settings-indicator">
-                <span className="settings-arrow">↳</span>
-                <span className="settings-label">Settings</span>
-              </div>
-
               <main className="app-content">{children}</main>
             </div>
           </div>

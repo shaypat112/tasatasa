@@ -1,0 +1,635 @@
+/* AchievementPopup.module.css */
+
+.container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  perspective: 1000px;
+  animation: slideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+/* Particles */
+.particlesContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(1px);
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Popup Base */
+.popup {
+  position: relative;
+  width: 400px;
+  background: linear-gradient(145deg, 
+    rgba(13, 17, 23, 0.95) 0%,
+    rgba(26, 26, 46, 0.95) 50%,
+    rgba(13, 17, 23, 0.95) 100%);
+  border: 3px solid var(--achievement-color, #4cc9f0);
+  border-radius: 0;
+  padding: 25px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.7),
+    0 0 60px var(--achievement-glow, rgba(76, 201, 240, 0.3)),
+    inset 0 0 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  transform-style: preserve-3d;
+  animation: popupEnter 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  overflow: hidden;
+}
+
+.popup::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, 
+    transparent, 
+    var(--achievement-color, #4cc9f0), 
+    transparent, 
+    var(--achievement-color, #4cc9f0), 
+    transparent);
+  z-index: -1;
+  animation: borderFlow 3s linear infinite;
+  border-radius: 0;
+}
+
+.popup.common {
+  --achievement-color: #4cc9f0;
+  --achievement-glow: rgba(76, 201, 240, 0.3);
+}
+
+.popup.rare {
+  --achievement-color: #4361ee;
+  --achievement-glow: rgba(67, 97, 238, 0.3);
+}
+
+.popup.epic {
+  --achievement-color: #f72585;
+  --achievement-glow: rgba(247, 37, 133, 0.3);
+}
+
+.popup.legendary {
+  --achievement-color: #ffd166;
+  --achievement-glow: rgba(255, 209, 102, 0.3);
+}
+
+/* Glow Effect */
+.glowEffect {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle at center,
+    var(--achievement-glow, rgba(76, 201, 240, 0.1)) 0%,
+    transparent 70%
+  );
+  filter: blur(20px);
+  opacity: 0.5;
+  animation: pulseGlow 2s ease-in-out infinite;
+  z-index: 0;
+}
+
+/* Border Animation */
+.borderAnimation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    var(--achievement-color, #4cc9f0) 50%, 
+    transparent 100%);
+  animation: scanline 4s linear infinite;
+  opacity: 0.1;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 2;
+}
+
+.rarityBadge {
+  background: rgba(0, 0, 0, 0.6);
+  border: 2px solid var(--achievement-color, #4cc9f0);
+  color: var(--achievement-color, #4cc9f0);
+  padding: 8px 16px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 5px 10px;
+  transition: all 0.3s;
+  border-radius: 0;
+}
+
+.closeButton:hover {
+  color: var(--achievement-color, #4cc9f0);
+  transform: scale(1.2);
+}
+
+/* Icon Section */
+.iconSection {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 25px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.iconContainer {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.iconBackground {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, 
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.4) 100%);
+  border: 4px solid var(--achievement-color, #4cc9f0);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
+.icon {
+  font-size: 2.5rem;
+  animation: iconSpin 4s linear infinite;
+}
+
+.iconGlow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120%;
+  height: 120%;
+  background: radial-gradient(
+    circle at center,
+    var(--achievement-color, #4cc9f0) 0%,
+    transparent 70%
+  );
+  filter: blur(10px);
+  opacity: 0.3;
+  animation: iconPulse 2s ease-in-out infinite;
+}
+
+.pointsBadge {
+  position: absolute;
+  bottom: -10px;
+  right: -10px;
+  background: linear-gradient(45deg, #ffd166, #ff9500);
+  color: #000;
+  padding: 5px 12px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  font-weight: bold;
+  border: 2px solid #000;
+  border-radius: 0;
+  z-index: 3;
+  animation: pointsBounce 1s ease infinite;
+}
+
+/* Text Content */
+.textContent {
+  text-align: center;
+  margin: 20px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.title {
+  color: #fff;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.2rem;
+  margin: 0 0 15px;
+  text-shadow: 2px 2px 0 #000;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+.description {
+  color: #4cc9f0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* Progress Bar */
+.progressContainer {
+  margin: 20px 0;
+  position: relative;
+  z-index: 2;
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--achievement-color, #4cc9f0);
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, 
+    var(--achievement-color, #4cc9f0) 0%,
+    #fff 50%,
+    var(--achievement-color, #4cc9f0) 100%);
+  background-size: 200% 100%;
+  animation: progressShine 2s linear infinite;
+  transition: width 0.1s linear;
+}
+
+/* Stats */
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statLabel {
+  color: #888;
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  margin-bottom: 5px;
+}
+
+.statValue {
+  color: var(--achievement-color, #4cc9f0);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+/* Corner Accents */
+.cornerAccentTL,
+.cornerAccentTR,
+.cornerAccentBL,
+.cornerAccentBR {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 3px solid var(--achievement-color, #4cc9f0);
+  z-index: 1;
+}
+
+.cornerAccentTL {
+  top: 10px;
+  left: 10px;
+  border-right: none;
+  border-bottom: none;
+  animation: cornerGlowTL 2s ease-in-out infinite;
+}
+
+.cornerAccentTR {
+  top: 10px;
+  right: 10px;
+  border-left: none;
+  border-bottom: none;
+  animation: cornerGlowTR 2s ease-in-out infinite;
+}
+
+.cornerAccentBL {
+  bottom: 10px;
+  left: 10px;
+  border-right: none;
+  border-top: none;
+  animation: cornerGlowBL 2s ease-in-out infinite;
+}
+
+.cornerAccentBR {
+  bottom: 10px;
+  right: 10px;
+  border-left: none;
+  border-top: none;
+  animation: cornerGlowBR 2s ease-in-out infinite;
+}
+
+/* Animations */
+@keyframes slideIn {
+  0% {
+    transform: translateX(100%) rotateY(90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0) rotateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes popupEnter {
+  0% {
+    transform: scale(0) rotate(-15deg);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-10px) rotate(180deg);
+  }
+}
+
+@keyframes borderFlow {
+  0% {
+    background-position: -200% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes scanline {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    box-shadow: 0 0 10px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    box-shadow: 0 0 20px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes iconSpin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(90deg) scale(1.1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1);
+  }
+  75% {
+    transform: rotate(270deg) scale(1.1);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+@keyframes iconPulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes pointsBounce {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.1);
+  }
+}
+
+@keyframes textGlow {
+  0%, 100% {
+    text-shadow: 
+      2px 2px 0 #000,
+      0 0 10px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    text-shadow: 
+      2px 2px 0 #000,
+      0 0 20px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+@keyframes progressShine {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes cornerGlowTL {
+  0%, 100% {
+    border-color: var(--achievement-color, #4cc9f0);
+    box-shadow: -2px -2px 8px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: -2px -2px 16px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+@keyframes cornerGlowTR {
+  0%, 100% {
+    border-color: var(--achievement-color, #4cc9f0);
+    box-shadow: 2px -2px 8px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: 2px -2px 16px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+@keyframes cornerGlowBL {
+  0%, 100% {
+    border-color: var(--achievement-color, #4cc9f0);
+    box-shadow: -2px 2px 8px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: -2px 2px 16px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+@keyframes cornerGlowBR {
+  0%, 100% {
+    border-color: var(--achievement-color, #4cc9f0);
+    box-shadow: 2px 2px 8px var(--achievement-glow, rgba(76, 201, 240, 0.3));
+  }
+  50% {
+    border-color: #fff;
+    box-shadow: 2px 2px 16px var(--achievement-glow, rgba(76, 201, 240, 0.6));
+  }
+}
+
+/* Exit Animation */
+.container.exiting {
+  animation: slideOut 0.5s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
+}
+
+@keyframes slideOut {
+  0% {
+    transform: translateX(0) rotateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%) rotateY(90deg);
+    opacity: 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    width: calc(100% - 20px);
+  }
+  
+  .popup {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .popup {
+    padding: 15px;
+  }
+  
+  .title {
+    font-size: 1rem;
+  }
+  
+  .description {
+    font-size: 0.8rem;
+  }
+  
+  .icon {
+    font-size: 2rem;
+  }
+  
+  .iconBackground {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+/* Achievement List Component (Bonus) */
+.achievementList {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 9998;
+}
+
+.achievementButton {
+  background: linear-gradient(45deg, #4361ee, #3a0ca3);
+  border: 3px solid #4cc9f0;
+  color: white;
+  padding: 10px 20px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 4px 4px 0 #000;
+  transition: all 0.2s;
+}
+
+.achievementButton:hover {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 #000;
+}
+
+.achievementCounter {
+  background: #f72585;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+}

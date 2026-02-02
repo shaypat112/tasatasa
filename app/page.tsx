@@ -27,7 +27,7 @@ export default function HomePage() {
 
           <div className="flex flex-col gap-4">
             <Link href="/game">
-              <button className="retro-button w-full">START GAME</button>
+              <button className="retro-button w-full"> MATH DASHBOARD</button>
             </Link>
 
             <Link href="/chat">
@@ -36,6 +36,15 @@ export default function HomePage() {
                 aria-disabled="true"
               >
                 ChatRoom
+              </button>
+            </Link>
+
+            <Link href="/map">
+              <button
+                className="retro-button w-full opacity-40 cursor-not-allowed"
+                aria-disabled="true"
+              >
+                Start Game
               </button>
             </Link>
           </div>

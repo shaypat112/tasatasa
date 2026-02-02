@@ -2,7 +2,7 @@
 
 html,
 body {
-  margin: 0;
+  margin: 10px;
   padding: 0;
   height: 100%;
   background-color: #0f0f0f;
@@ -22,6 +22,8 @@ main {
   justify-content: center;
   height: 100%;
 }
+
+
 
 /* for the difficulty  */
 
